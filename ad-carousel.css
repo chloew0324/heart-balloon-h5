@@ -64,3 +64,13 @@
 #vote-view{background:linear-gradient(#fff 0%,#f5f5f5 28%,#f4f4f4 52%,#f3faf6 69%,#defeec 100%)}
 #vote-view .vote-scene,#vote-view .ad-carousel-slide{transform-origin:50% 0}
 #vote-view .vote-scene>.vote-controls,#vote-view .ad-carousel-slide>.vote-controls{padding-top:0;min-height:calc(160 * var(--ad-u))}
+
+/* Feedback isolates the chosen advertisement; surrounding modules return afterwards. */
+.ad-carousel-slide{transition:opacity .18s ease}
+.ad-carousel.vote-feedback-active>.ad-carousel-slide{opacity:0;visibility:hidden}
+#vote-view:has(.vote-feedback-active) .swipe-navigation{opacity:0;pointer-events:none}
+@media(prefers-reduced-motion:reduce){.ad-carousel-slide{transition:none}}
+
+/* The recorded touch flow uses the exposed cards as the swipe affordance.
+   Keep explicit previous/next controls available when reached by keyboard. */
+#vote-view .swipe-navigation:not(:focus-within){position:absolute;width:1px;height:1px;padding:0;margin:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}

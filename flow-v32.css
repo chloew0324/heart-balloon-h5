@@ -75,3 +75,6 @@
 #showcase .showcase-track{gap:calc(min(393px,100vw) / 402 * 24);top:calc(min(393px,100vw) / 402 * 150)}
 
 #cover{height:max(calc(min(393px,100vw) * 2.0356234),calc(100svh - 52px))}
+
+/* Programmatic focus announces the new page without drawing a frame on its title. */
+.view h1[tabindex="-1"]:focus{outline:none}

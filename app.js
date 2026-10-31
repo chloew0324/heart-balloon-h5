@@ -192,7 +192,7 @@ if(typeof document!=='undefined'){
   flight.style.setProperty('--launch-x',(start.x+start.width/2-target.x-target.width/2)+'px');
   flight.style.setProperty('--launch-y',(start.y+start.height/2-target.y-target.height/2)+'px');
   flight.style.setProperty('--launch-scale',Math.min(.44,115/target.width));
-  $('#vote-scene').classList.add('vote-is-flying');button.disabled=true;flight.classList.add('active');$('#next-step').disabled=true;$('#previous-ad').disabled=true;$('#next-ad').disabled=true;
+  $('#vote-scene').classList.add('vote-is-flying');$('#ad-carousel').classList.add('vote-feedback-active');button.disabled=true;flight.classList.add('active');$('#next-step').disabled=true;$('#previous-ad').disabled=true;$('#next-ad').disabled=true;
   motionTimer=setTimeout(()=>completeFlight(pendingFlightId),effect.duration+100);
  }
  $('.flight-balloon').addEventListener('animationend',event=>{if(event.target===$('.flight-balloon'))completeFlight(pendingFlightId)});
@@ -204,7 +204,7 @@ if(typeof document!=='undefined'){
  function currentAd(){return ads[session.index]}
  function currentVote(){return session.votes.find(vote=>vote.id===currentAd().id)}
  function closeAllDialogs(){$$('dialog[open]').forEach(dialog=>dialog.close());document.body.style.overflow=''}
- function stopMotion({keepLetters=false}={}){cancelAdCarousel();clearTimeout(entryTimer);clearTimeout(motionTimer);pendingFlightId=null;pendingChoice=null;$('#mail-flow').classList.remove('letter-is-switching');$('#card-view').classList.remove('card-return');$('#vote-flight').hidden=true;$('#vote-flight').classList.remove('active');$('#vote-scene').classList.remove('vote-is-flying');if(!keepLetters){$('#mail-flow')?.classList.remove('letter-is-unsealing');const letters=$('#heart-choices');letters.classList.remove('letter-in-flight');delete letters.dataset.opening;$$('.heart-choice.opening,.heart-choice.letter-sending').forEach(el=>el.classList.remove('opening','letter-sending'));if(view==='choose')updateChoiceCarousel();if(view==='card'&&availableCards().length){$('#card-view').classList.remove('card-reveal');updateCardPosition()}}$('#vote-button').disabled=false}
+ function stopMotion({keepLetters=false}={}){cancelAdCarousel();clearTimeout(entryTimer);clearTimeout(motionTimer);pendingFlightId=null;pendingChoice=null;$('#mail-flow').classList.remove('letter-is-switching');$('#card-view').classList.remove('card-return');$('#vote-flight').hidden=true;$('#vote-flight').classList.remove('active');$('#vote-scene').classList.remove('vote-is-flying');$('#ad-carousel').classList.remove('vote-feedback-active');if(!keepLetters){$('#mail-flow')?.classList.remove('letter-is-unsealing');const letters=$('#heart-choices');letters.classList.remove('letter-in-flight');delete letters.dataset.opening;$$('.heart-choice.opening,.heart-choice.letter-sending').forEach(el=>el.classList.remove('opening','letter-sending'));if(view==='choose')updateChoiceCarousel();if(view==='card'&&availableCards().length){$('#card-view').classList.remove('card-reveal');updateCardPosition()}}$('#vote-button').disabled=false}
  function show(next,{replace=false}={}){
   if(next!=='landing'&&!manifestReady)return;
   if(next==='card'&&!availableCards().length)next='choose';
@@ -222,7 +222,7 @@ if(typeof document!=='undefined'){
  $('#back-button').addEventListener('click',()=>{if(view==='landing'){window.scrollTo({top:0,behavior:reduced()?'instant':'smooth'});return}const previous=previousPage(history,session);session.index=previous.index;session.currentCard=previous.currentCard||session.currentCard;save();show(previous.view,{replace:true})});
  $('#menu-button').addEventListener('click',()=>openDialog('#menu-dialog'));$('#menu-cover').addEventListener('click',()=>show('landing'));$('#menu-results').addEventListener('click',()=>show('choose'));
  $('#menu-restart').addEventListener('click',()=>openDialog('#restart-dialog'));$('#restart-button').addEventListener('click',()=>openDialog('#restart-dialog'));$('#confirm-restart').addEventListener('click',restart);$('.close-restart').addEventListener('click',()=>$('#restart-dialog').close());$$('.rules-trigger').forEach(button=>button.addEventListener('click',()=>openDialog('#rules-dialog')));
- $('#cover-start').addEventListener('click',()=>{$('#showcase').scrollIntoView({behavior:reduced()?'instant':'smooth'});$('#showcase').classList.add('revealed')});
+ $('#cover-start').addEventListener('click',event=>{event.currentTarget.blur();$('#showcase').scrollIntoView({behavior:reduced()?'instant':'smooth'});$('#showcase').classList.add('revealed')});
  function completeEntry(){const rect=$('#showcase').getBoundingClientRect();if(view==='landing'&&manifestReady&&!$('dialog[open]')&&rect.top<innerHeight*.4&&rect.bottom>innerHeight*.6){session.index=0;save();show('vote');$('#vote-view').classList.add('vote-entry')}}
  function scheduleEntry(){clearTimeout(entryTimer);if(view!=='landing'||!manifestReady)return;$('#showcase').classList.add('entry-running');if(reduced()){entryFinished=true;completeEntry()}}
  $('#showcase').addEventListener('animationend',event=>{if(event.animationName!=='recording-ad-procession')return;entryFinished=true;completeEntry()});
@@ -243,7 +243,7 @@ if(typeof document!=='undefined'){
   const spec=adModules[ad.id];if(!spec)return;const ident=id=>live?' id="'+id+'"':'';
   moment.classList.add('native-ad-module');moment.innerHTML=`<div class="moment-profile"><span${ident('brand-avatar')} class="brand-avatar">${moduleAsset(ad,spec.avatar,'module-avatar')}</span><div><b${ident('ad-brand')}>${escapeHTML(spec.name)}</b></div></div><div class="ad-image-wrap capture-media" style="${captureStyle(moduleCapture(ad))}"><div class="ad-capture-frame"><img${ident('ad-image')} src="${escapeHTML(ad.image)}" alt="${live?escapeHTML(ad.title):''}" draggable="false"><div${ident('ad-image-placeholder')} class="ad-image-placeholder" hidden>好创意，正在与你相遇</div></div></div>${moduleAsset(ad,spec.detail,'module-detail')}<p${ident('ad-caption')} class="ad-caption">${escapeHTML(spec.caption)}</p><div class="ad-card-bottom"><span></span><button${ident('ad-source')} class="text-button" hidden>查看来源</button></div>`;
  }
- function renderShowcase(){const ordered=[...ads.slice(1),ads[0]];$('#showcase-deck').innerHTML='<div class="showcase-track">'+ordered.map((ad,i)=>`<div class="showcase-card" data-entry-id="${escapeHTML(ad.id)}" style="--order:${i}"><article class="moment-ad"></article></div>`).join('')+'</div>';for(const panel of $$('.showcase-card')){const ad=ordered.find(item=>item.id===panel.dataset.entryId);if(adModules[ad.id])paintAdModule(panel.querySelector('article'),ad);else panel.querySelector('article').innerHTML=adThumbnail(ad,'showcase-image')}}
+ function renderShowcase(){const ordered=[ads[0],...ads.slice(1),ads[0],ads[1]];$('#showcase-deck').innerHTML='<div class="showcase-track" aria-hidden="true">'+ordered.map((ad,i)=>`<div class="showcase-card" data-entry-id="${escapeHTML(ad.id)}" style="--panel-angle:${(i-1)*5.85}deg"><article class="moment-ad"></article></div>`).join('')+'</div>';for(const panel of $$('.showcase-card')){const ad=ordered.find(item=>item.id===panel.dataset.entryId);if(adModules[ad.id])paintAdModule(panel.querySelector('article'),ad);else panel.querySelector('article').innerHTML=adThumbnail(ad,'showcase-image')}}
 
  function sourceSummary(ad){const match=ad.sourceLabel.match(/(20\d{2}).*?([\d.]+)秒/);return match?match[1]+' 案例录屏 · '+match[2]+'秒':ad.sourceLabel}
  function renderAd(){
@@ -252,7 +252,7 @@ if(typeof document!=='undefined'){
   $('.moment-ad').classList.toggle('captured-ad',!!ad.capture);wrap.classList.toggle('capture-media',!!ad.capture);wrap.style.cssText=captureStyle(moduleCapture(ad));$('#ad-image').hidden=!ad.image;$('#ad-image-placeholder').hidden=!!ad.image;
   if(ad.image){const adId=ad.id;$('#ad-image').onerror=()=>{if(currentAd().id===adId){$('#ad-image').hidden=true;$('#ad-image-placeholder').hidden=false}};$('#ad-image').onload=()=>{if(currentAd().id===adId)$('#ad-image-placeholder').hidden=true};$('#ad-image').src=ad.image;$('#ad-image').alt=ad.title}
   $('#ad-caption').textContent=adModules[ad.id]?.caption||ad.caption;$('.ad-card-bottom>span').textContent=sourceSummary(ad)||'广告';$('#ad-source').hidden=!ad.sourceUrl;prepareFlight();$('#vote-button').hidden=!!vote;$('#vote-button').disabled=!!pendingFlightId;$('#already-voted').hidden=!vote;$('#vote-brand-label').textContent=ad.brand.split(/\s/).slice(-1)[0]||'';
-  $('.vote-progress').innerHTML='已投 <b class="vote-count">'+session.votes.length+'</b> / 10 票';$('#next-step').innerHTML='下一步 <span>↓</span>';$('#next-step').disabled=!session.votes.length||!!pendingFlightId;$('#previous-ad').disabled=ads.length<2||!!pendingFlightId;$('#next-ad').disabled=ads.length<2||!!pendingFlightId;refreshVoteCounts();if(!adCarouselBusy)syncAdNeighbors();
+  $('.vote-progress').innerHTML='已投 <b class="vote-count">'+session.votes.length+'</b> / 10 票';$('#next-step').textContent=session.votes.length?'下一步':'快去投票';$('#next-step').disabled=!session.votes.length||!!pendingFlightId;$('#previous-ad').disabled=ads.length<2||!!pendingFlightId;$('#next-ad').disabled=ads.length<2||!!pendingFlightId;refreshVoteCounts();if(!adCarouselBusy)syncAdNeighbors();
  }
  function carouselStep(){return $('#vote-scene').getBoundingClientRect().width+$('#vote-view').clientWidth/402*24}
  function cloneAdScene(index){
@@ -267,7 +267,11 @@ if(typeof document!=='undefined'){
   styleVoteHeart(copy.querySelector('.already-voted'),index);
   return copy;
  }
- function placeAdSlide(slide,x){const progress=Math.min(1,Math.abs(x)/carouselStep());slide.style.transform=`translate3d(${x}px,0,0) rotateY(${-Math.sign(x)*progress*4}deg) rotateZ(${Math.sign(x)*progress*5}deg) scale(${1-progress*.018})`}
+ function placeAdSlide(slide,offset){
+  const step=carouselStep(),angle=offset/step*5.85,radius=step/Math.sin(5.85*Math.PI/180);
+  // Rotation around one shared point below the screen traces a true circular arc.
+  slide.style.transformOrigin=`50% ${radius}px`;slide.style.transform=`rotateZ(${angle}deg)`;
+ }
  function syncAdNeighbors(){
   const carousel=$('#ad-carousel');if(!carousel||adCarouselBusy)return;carousel.querySelectorAll('.ad-carousel-slide').forEach(el=>el.remove());
   for(const direction of [-1,1]){const index=(session.index+direction+ads.length)%ads.length;if(ads.length<2)continue;const copy=cloneAdScene(index);copy.dataset.direction=String(direction);carousel.append(copy);placeAdSlide(copy,direction*carouselStep())}
