@@ -1,0 +1,49 @@
+/* One visible browser page, rather than a full physical-device screen.
+   393×852 stays the reference; Safari/Chrome bars reduce the available canvas. */
+:root{--app-height:100svh;--app-height:100dvh;--page-space:calc(var(--app-height) - 52px - env(safe-area-inset-bottom,0px));-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{padding:0}
+.phone-app{min-height:var(--app-height);padding-bottom:env(safe-area-inset-bottom,0px);border:0;border-radius:0;box-shadow:none}
+.wechat-bar{flex:none;height:52px}
+.view{min-height:var(--page-space)}
+#landing-view{min-height:0}
+#cover{height:var(--page-space)}
+.cover-artboard{position:absolute;top:0;left:50%;transform:translateX(-50%);width:min(100%,calc(var(--page-space) / 2.0356234));height:100%;container-type:inline-size}
+#cover .start-scroll{min-height:44px}
+#cover .cover-bottom{top:auto;bottom:12px}
+#showcase{--ad-u:min(calc(min(100vw,393px) / 402),calc(var(--page-space) / 800));min-height:0;height:var(--page-space)}
+#showcase .showcase-deck{--orbit-radius:calc(var(--entry-step) * 9.811393)}
+#showcase .showcase-track{top:calc(150 * var(--ad-u))}
+#vote-view{--ad-u:min(calc(min(100vw,393px) / 402),calc(var(--page-space) / 800));height:var(--page-space);min-height:0}
+
+/* Keep the same portrait geometry for selection, envelope and letter.
+   Their shared coordinates shrink together, including the paper exit mask. */
+.mail-flow,#mail-flow.letter-is-open{--u:min(calc(min(100vw,393px) / 402),calc(var(--page-space) / 815));height:var(--page-space);min-height:0}
+#choose-view{height:100%;min-height:0}
+#choose-view h1{font-size:clamp(20px,calc(29 * var(--u)),24px);line-height:1.45}
+#choose-view .choose-intro{font-size:clamp(17px,calc(24 * var(--u)),20px)}
+#choose-view .choice-description{font-size:clamp(11px,calc(15 * var(--u)),13px)}
+.choice-navigation{font-size:11px}
+#choose-view #make-cards,#card-view #save-card{min-height:44px;font-size:16px}
+#choose-view>#choose-voting,#card-view #card-back-bottom{font-size:clamp(11px,calc(11 * var(--u)),12px)}
+.choice-navigation button{width:38px;height:38px}
+#card-view .card-pagination>button{width:32px;height:32px}
+dialog{max-height:calc(var(--app-height) - 32px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow-y:auto;overscroll-behavior:contain}
+
+/* Recording rhythm: copy first, the central heart rises, neighbors join,
+   then the take-away action appears. The handwriting and approved art stay. */
+#choose-view.choice-enter .choose-heading{animation:choice-copy-in .5s .08s both}
+#choose-view.choice-enter .choose-intro{animation:choice-copy-in .5s .3s both}
+#choose-view.choice-enter .choice-slide.is-current>img{animation:choice-heart-arrive .85s .42s cubic-bezier(.18,.72,.22,1) both,choice-drift 5.6s 1.27s ease-in-out infinite}
+#choose-view.choice-enter .choice-slide.is-previous>img{animation:choice-neighbor-left .7s .8s cubic-bezier(.2,.7,.25,1) both}
+#choose-view.choice-enter .choice-slide.is-next>img{animation:choice-neighbor-right .7s .8s cubic-bezier(.2,.7,.25,1) both}
+#choose-view.choice-enter .choice-thread{animation:choice-thread-in .5s .95s both}
+#choose-view.choice-enter .choice-guide-arrow path{stroke-dasharray:75;animation:choice-guide-in .65s .65s both}
+#choose-view.choice-enter .choice-description,#choose-view.choice-enter .choice-navigation{animation:choice-copy-in .45s 1.1s both}
+#choose-view.choice-enter .choose-actions,#choose-view.choice-enter>#choose-voting{animation:choice-copy-in .45s 1.35s both}
+@keyframes choice-copy-in{from{opacity:0;translate:0 9px}to{opacity:1;translate:0 0}}
+@keyframes choice-heart-arrive{0%{opacity:0;transform:translateY(36px) scale(.68) rotate(-6deg)}70%{opacity:1;transform:translateY(-3px) scale(1.025) rotate(1deg)}100%{opacity:1;transform:none}}
+@keyframes choice-neighbor-left{from{opacity:0;transform:translateX(-38px) rotate(-9deg)}to{opacity:1;transform:none}}
+@keyframes choice-neighbor-right{from{opacity:0;transform:translateX(38px) rotate(9deg)}to{opacity:1;transform:none}}
+@keyframes choice-thread-in{from{opacity:0}to{opacity:.55}}
+@keyframes choice-guide-in{from{stroke-dashoffset:75;opacity:0}to{stroke-dashoffset:0;opacity:1}}
+@media(prefers-reduced-motion:reduce){#choose-view.choice-enter *,#choose-view.choice-enter .choice-guide-arrow path{animation:none!important}}

@@ -210,7 +210,7 @@ if(typeof document!=='undefined'){
   if(next==='card'&&!availableCards().length)next='choose';
   if(['choose','card'].includes(next)&&!session.votes.length){toast('先为一个喜欢的好创意投票吧');next='vote'}
   stopMotion({keepLetters:next==='card'&&view==='choose'&&!!pendingChoice});closeAllDialogs();$('#vote-view').classList.remove('vote-entry');if(next!==view&&!replace)history.push({view,index:displayedIndex,currentCard:displayedCard});
-  const previousView=view;view=next;displayedIndex=session.index;displayedCard=session.currentCard;const mailFlow=$('#mail-flow');mailFlow.hidden=!['choose','card'].includes(next);mailFlow.classList.toggle('letter-is-open',next==='card');$('#choose-view').inert=next==='card';$('#choose-view').setAttribute('aria-hidden',String(next==='card'));$$('.view').forEach(el=>el.hidden=el.id!==next+'-view'&&!(next==='card'&&el.id==='choose-view'));
+  const previousView=view;$('#choose-view').classList.remove('choice-enter');view=next;displayedIndex=session.index;displayedCard=session.currentCard;const mailFlow=$('#mail-flow');mailFlow.hidden=!['choose','card'].includes(next);mailFlow.classList.toggle('letter-is-open',next==='card');$('#choose-view').inert=next==='card';$('#choose-view').setAttribute('aria-hidden',String(next==='card'));$$('.view').forEach(el=>el.hidden=el.id!==next+'-view'&&!(next==='card'&&el.id==='choose-view'));
   if(next==='vote')renderAd();if(next==='choose')renderChoices();if(next==='card')renderCards({reveal:previousView!=='card'});
   if(!['choose','card'].includes(next)||!['choose','card'].includes(previousView))window.scrollTo({top:0,behavior:'instant'});const title=$('#'+next+'-view h1');if(title){title.tabIndex=-1;title.focus({preventScroll:true})}
   $('#back-button').textContent=next==='landing'?'×':'‹';$('#back-button').setAttribute('aria-label',next==='landing'?'返回封面顶部':'返回上一页');
@@ -323,7 +323,7 @@ if(typeof document!=='undefined'){
  function votedBrandNames(){return [...new Set(session.votes.map(vote=>ads.find(ad=>ad.id===vote.id)?.brand).filter(Boolean).map(name=>name.match(/[\u3400-\u9fff][\u3400-\u9fff·-]*/g)?.join('')||name))]}
  function positionMailScene(){
   const flow=$('#mail-flow');if(!flow||!flow.clientWidth)return;
-  const width=flow.clientWidth,u=width/402,frameWidth=width*.88,frameX=(width-frameWidth)/2,frameY=47*u;
+  const width=flow.clientWidth,u=Math.min(width/402,flow.clientHeight/815),frameWidth=402*u*.88,frameX=(width-frameWidth)/2,frameY=47*u;
   // Paper and export share the same 1000×1600 frame; no second paper scale.
   const envelopeY=frameY+frameWidth*.83,envelopeHeight=frameWidth*.70,paperY=frameY;
   for(const [key,value] of Object.entries({'--mailbox-x':frameX+frameWidth*.5,'--mailbox-y':envelopeY,'--mailbox-width':frameWidth*.9,'--mailbox-height':envelopeHeight,'--letter-paper-x':frameX,'--letter-paper-y':paperY,'--letter-paper-width':frameWidth,'--letter-paper-height':frameWidth*1.6,'--letter-emerge-distance':envelopeY+envelopeHeight*.40-paperY,'--letter-actions-y':frameY+frameWidth*1.6+10*u,'--letter-frame-x':frameX,'--letter-frame-y':frameY,'--letter-frame-width':frameWidth}))flow.style.setProperty(key,value+'px');
@@ -344,7 +344,7 @@ if(typeof document!=='undefined'){
  function renderChoices(){
   const stage=$('#heart-choices');stage.classList.remove('letter-in-flight');delete stage.dataset.opening;
   const flow=$('#mail-flow');if(!flow.querySelector(':scope > .mailbox'))flow.insertAdjacentHTML('beforeend',`<div class="mailbox" aria-hidden="true"><span class="mailbox-back"></span><span class="mailbox-lid"></span><span class="mailbox-front"><i class="mailbox-mark"><img src="${globalThis.ANNIVERSARY_MARK||'assets/anniversary-mark-v22.png'}" alt=""></i></span></div>`);
-  updateChoiceCarousel();availableCards().forEach(card=>preloadLetter(card.id).catch(()=>{}));
+  updateChoiceCarousel();void stage.offsetWidth;$('#choose-view').classList.add('choice-enter');availableCards().forEach(card=>preloadLetter(card.id).catch(()=>{}));
  }
  function chooseCard(id,{focus=false}={}){
   if(view!=='choose'||pendingChoice||$('#heart-choices').dataset.opening||!availableCards().some(card=>card.id===id))return;
@@ -357,6 +357,8 @@ if(typeof document!=='undefined'){
  });
  $('#choice-previous').addEventListener('click',()=>moveChoice(-1));$('#choice-next').addEventListener('click',()=>moveChoice(1));
  $('#make-cards').addEventListener('click',()=>window.openHeartLetter(session.currentCard));
+ $('#choose-view').addEventListener('animationend',event=>{if(event.target===$('#choose-voting'))$('#choose-view').classList.remove('choice-enter')});
+ $('#choose-view').addEventListener('pointerdown',()=>$('#choose-view').classList.remove('choice-enter'));
  window.addEventListener('resize',()=>{if(view==='choose')updateChoiceCarousel();else if(view==='card')positionMailScene()});
  $('#choose-voting').addEventListener('click',()=>show('vote'));
  function renderCards({reveal=true}={}){
