@@ -47,3 +47,15 @@ dialog{max-height:calc(var(--app-height) - 32px - env(safe-area-inset-top,0px) -
 @keyframes choice-thread-in{from{opacity:0}to{opacity:.55}}
 @keyframes choice-guide-in{from{stroke-dashoffset:75;opacity:0}to{stroke-dashoffset:0;opacity:1}}
 @media(prefers-reduced-motion:reduce){#choose-view.choice-enter *,#choose-view.choice-enter .choice-guide-arrow path{animation:none!important}}
+
+
+/* A swipe changes scenes; it no longer scrolls down a long landing page. */
+#landing-view{position:relative;height:var(--page-space);overflow:hidden;animation:none}
+#cover{touch-action:pan-x}
+#showcase{position:absolute;inset:0;visibility:hidden;pointer-events:none;opacity:0;z-index:2}
+#landing-view.landing-entering #cover{animation:cover-scene-out .6s cubic-bezier(.35,0,.3,1) both;pointer-events:none}
+#landing-view.landing-entering #showcase{visibility:visible;opacity:1;animation:ad-scene-in .55s .15s both}
+#showcase.entry-running .showcase-track,#showcase.entry-running .showcase-card{animation-delay:.5s}
+@keyframes cover-scene-out{to{opacity:0;transform:translateY(-45%) scale(.94)}}
+@keyframes ad-scene-in{from{opacity:0;transform:translateY(9%)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){#landing-view.landing-entering #cover,#landing-view.landing-entering #showcase{animation:none!important}}
