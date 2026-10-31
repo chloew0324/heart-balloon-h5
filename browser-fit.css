@@ -1,6 +1,6 @@
 /* One visible browser page, rather than a full physical-device screen.
    393×852 stays the reference; Safari/Chrome bars reduce the available canvas. */
-:root{--app-height:100svh;--app-height:100dvh;--page-space:calc(var(--app-height) - 52px - env(safe-area-inset-bottom,0px));-webkit-text-size-adjust:100%;text-size-adjust:100%}
+:root{--app-height:100svh;--app-height:100dvh;--app-bar-height:52px;--page-space:calc(var(--app-height) - var(--app-bar-height) - env(safe-area-inset-bottom,0px));-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{padding:0}
 .phone-app{min-height:var(--app-height);padding-bottom:env(safe-area-inset-bottom,0px);border:0;border-radius:0;box-shadow:none}
 .wechat-bar{flex:none;height:52px}
@@ -59,3 +59,12 @@ dialog{max-height:calc(var(--app-height) - 32px - env(safe-area-inset-top,0px) -
 @keyframes cover-scene-out{to{opacity:0;transform:translateY(-45%) scale(.94)}}
 @keyframes ad-scene-in{from{opacity:0;transform:translateY(9%)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){#landing-view.landing-entering #cover,#landing-view.landing-entering #showcase{animation:none!important}}
+
+/* WeChat supplies its own native title bar; ordinary browsers use this page's. */
+:root[data-host="wechat"]{--app-bar-height:0px}
+:root[data-host="wechat"] .wechat-bar{display:none}
+/* Keep the next neighbors decoded and offscreen before they enter the window. */
+.choice-slide{translate:var(--choice-drag,0px) 0;will-change:transform,translate}
+.choice-slide.is-before,.choice-slide.is-after{top:calc(41 * var(--u));width:calc(190 * var(--u));height:calc(190 * var(--u));transform:none;opacity:.5;pointer-events:none}
+.choice-slide.is-before{left:calc(-50% - 125 * var(--u))}
+.choice-slide.is-after{left:calc(150% - 65 * var(--u))}
