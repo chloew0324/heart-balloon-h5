@@ -21,3 +21,9 @@
    must keep avatars and cropped detail artwork in normal document flow. */
 #showcase .native-ad-module .brand-avatar,#showcase .native-ad-module .module-asset{position:relative;inset:auto}
 #showcase .native-ad-module .brand-avatar{width:calc(26 * var(--ad-u));height:calc(26 * var(--ad-u));flex:none}
+
+#showcase .native-ad-module{padding:0}
+#showcase .native-ad-module .moment-profile>.brand-avatar{position:absolute;left:var(--module-avatar-left);top:calc(14 * var(--ad-u))}
+#showcase .native-ad-module .ad-image-wrap.capture-media{margin-left:var(--module-media-left);width:var(--module-media-width)}
+#showcase .native-ad-module .module-detail{margin-left:var(--module-media-left);width:var(--module-media-width)}
+#showcase .native-ad-module .ad-caption{margin-left:var(--module-media-left);margin-right:calc(14 * var(--ad-u));font-size:calc(11 * var(--ad-u));line-height:1.5}

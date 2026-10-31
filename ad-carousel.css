@@ -74,3 +74,30 @@
 /* The recorded touch flow uses the exposed cards as the swipe affordance.
    Keep explicit previous/next controls available when reached by keyboard. */
 #vote-view .swipe-navigation:not(:focus-within){position:absolute;width:1px;height:1px;padding:0;margin:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+/* The resting page and voting heart share the current advertisement's palette. */
+#vote-view{background:linear-gradient(#fff 0%,#f5f5f5 36%,#f5f5f5 49%,var(--vote-page-wash,#e0ffed) 100%)}
+#vote-view .ad-votes,#vote-view .ad-votes b{color:var(--vote-page-ink,#27bc78)}
+#vote-view .vote-progress b{color:var(--vote-page-ink,#27bc78)}
+#vote-view .next-step{font-weight:400;color:#9b9d9b}
+
+/* Per-ad measured media coordinates, expressed within the 75.2% module frame. */
+#vote-view .native-ad-module{padding:0;height:calc(440 * var(--ad-u));mask-image:linear-gradient(#000 0%,#000 66%,transparent 100%);-webkit-mask-image:linear-gradient(#000 0%,#000 66%,transparent 100%)}
+.native-ad-module .moment-profile{position:relative;display:block!important;height:calc(39.5 * var(--ad-u));margin:0;padding:0}
+.native-ad-module .moment-profile>.brand-avatar{position:absolute;left:var(--module-avatar-left);top:calc(14 * var(--ad-u));margin:0}
+.native-ad-module .moment-profile>div{position:absolute;left:var(--module-media-left);top:calc(14 * var(--ad-u))}
+#vote-view .native-ad-module .ad-image-wrap.capture-media{margin-left:var(--module-media-left);width:var(--module-media-width)}
+.native-ad-module .module-detail{margin-left:var(--module-media-left);width:var(--module-media-width)}
+#vote-view .native-ad-module .ad-caption{margin-left:var(--module-media-left);margin-right:calc(14 * var(--ad-u));font-size:calc(11 * var(--ad-u));line-height:1.5;color:#65737c}
+#vote-view .vote-scene,#vote-view .ad-carousel-slide{background:none}
+#vote-view .ad-stage{background:none;border-radius:0}
+#vote-view .ad-stage::before{content:'';position:absolute;left:0;top:0;width:100%;height:calc(440 * var(--ad-u));background:#fff;border-radius:calc(22 * var(--ad-u));z-index:-1;pointer-events:none;mask-image:linear-gradient(#000 0%,#000 66%,transparent 100%);-webkit-mask-image:linear-gradient(#000 0%,#000 66%,transparent 100%)}
+/* Full-screen feedback tint, with the advertisement and balloon staying above it. */
+#vote-view{position:relative;isolation:isolate}
+#vote-view::before{content:'';position:absolute;inset:0;background:var(--vote-page-wash,#e0ffed);opacity:0;transition:opacity .25s ease;z-index:-1;pointer-events:none}
+#vote-view:has(.vote-feedback-active)::before{opacity:1}
+.phone-app:has(.vote-feedback-active){background:var(--vote-page-wash,#e0ffed)}
+.wechat-bar{transition:background-color .25s ease}
+.phone-app:has(.vote-feedback-active) .wechat-bar{background:var(--vote-page-wash,#e0ffed);backdrop-filter:none}
+/* Fit the available browser height: the 393×852 artboard remains the maximum. */
+#vote-view{--ad-u:min(calc(min(100vw,393px) / 402),calc((100svh - 52px) / 800))}

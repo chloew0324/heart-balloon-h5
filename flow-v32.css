@@ -70,7 +70,7 @@
 /* Figma iPhone 14 Pro / 15 Pro: 393 × 852; desktop shares the 393px artboard. */
 .phone-app{max-width:393px}
 .mail-flow{--u:calc(min(100vw,393px) / 402)}
-#vote-view{--ad-u:calc(min(100vw,393px) / 402)}
+#vote-view{--ad-u:min(calc(min(100vw,393px) / 402),calc((100svh - 52px) / 800))}
 #showcase .showcase-deck{--entry-card-width:calc(min(393px,100vw) * .752);--entry-step:calc(var(--entry-card-width) + min(393px,100vw) / 402 * 24)}
 #showcase .showcase-track{gap:calc(min(393px,100vw) / 402 * 24);top:calc(min(393px,100vw) / 402 * 150)}
 
