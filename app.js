@@ -230,42 +230,52 @@ if(typeof document!=='undefined'){
  const observer=new IntersectionObserver(entries=>{for(const entry of entries){if(entry.isIntersecting){$('#showcase').classList.add('revealed');scheduleEntry()}else{clearTimeout(entryTimer);entryFinished=false;$('#showcase').classList.remove('entry-running')}}},{threshold:.6});observer.observe($('#showcase'));$('#begin-voting').addEventListener('click',()=>show('vote'));
  function captureStyle(capture){return capture?`--capture-width:${capture.sourceWidth/capture.width*100}%;--capture-height:${capture.sourceHeight/capture.height*100}%;--capture-left:${-capture.x/capture.width*100}%;--capture-top:${-capture.y/capture.height*100}%;--capture-ratio:${capture.width/capture.height};`:''}
  function adThumbnail(ad,className='work-thumb'){return ad.image?`<span class="${className} ${ad.capture?'capture-media':''}" style="${captureStyle(ad.capture)}">${ad.capture?'<span class="capture-clip">':''}<img src="${escapeHTML(ad.image)}" alt="${escapeHTML(ad.title)}" draggable="false">${ad.capture?'</span>':''}</span>`:`<span class="${className} empty-thumb"></span>`}
- function renderShowcase(){const ordered=[...ads.slice(1),ads[0]];$('#showcase-deck').innerHTML='<div class="showcase-track">'+ordered.map((ad,i)=>`<div class="showcase-card" style="--order:${i}">${adThumbnail(ad,'showcase-image')}</div>`).join('')+'</div>'}
+ const adModules={
+  '2025-boucheron':{name:'Boucheron宝诗龙',avatar:[214,810,70,84],media:[324,879,618,513],detail:[324,1400,618,94],caption:'Boucheron宝诗龙：即刻探索全新#宝诗龙 Quatre Classique系列Tube作品。'},
+  '2025-lays':{name:'范丞丞',avatar:[177,808,96,96],media:[305,882,678,508],detail:[305,1400,678,310],caption:'范丞丞：新年就吃乐事有乐事！2026年祝大家好运连连，乐事不断！'},
+  '2025-mercedes':{name:'王楚钦',avatar:[190,810,96,96],media:[315,882,675,507],detail:[315,1400,675,110],caption:''},
+  '2025-tiffany':{name:'Tiffany蒂芙尼',avatar:[185,810,96,96],media:[311,882,674,507],detail:[311,1400,674,340],caption:''}
+ };
+ function moduleRect(rect){return {x:rect[0],y:rect[1],width:rect[2],height:rect[3],sourceWidth:1206,sourceHeight:2622}}
+ function moduleCapture(ad){return adModules[ad.id]?moduleRect(adModules[ad.id].media):ad.capture}
+ function moduleAsset(ad,rect,cls){return `<span class="module-asset ${cls}" style="${captureStyle(moduleRect(rect))}"><img src="${escapeHTML(ad.image)}" alt="" draggable="false"></span>`}
+ function paintAdModule(moment,ad,live=false){
+  const spec=adModules[ad.id];if(!spec)return;const ident=id=>live?' id="'+id+'"':'';
+  moment.classList.add('native-ad-module');moment.innerHTML=`<div class="moment-profile"><span${ident('brand-avatar')} class="brand-avatar">${moduleAsset(ad,spec.avatar,'module-avatar')}</span><div><b${ident('ad-brand')}>${escapeHTML(spec.name)}</b></div></div><div class="ad-image-wrap capture-media" style="${captureStyle(moduleCapture(ad))}"><div class="ad-capture-frame"><img${ident('ad-image')} src="${escapeHTML(ad.image)}" alt="${live?escapeHTML(ad.title):''}" draggable="false"><div${ident('ad-image-placeholder')} class="ad-image-placeholder" hidden>好创意，正在与你相遇</div></div></div>${moduleAsset(ad,spec.detail,'module-detail')}<p${ident('ad-caption')} class="ad-caption">${escapeHTML(spec.caption)}</p><div class="ad-card-bottom"><span></span><button${ident('ad-source')} class="text-button" hidden>查看来源</button></div>`;
+ }
+ function renderShowcase(){const ordered=[...ads.slice(1),ads[0]];$('#showcase-deck').innerHTML='<div class="showcase-track">'+ordered.map((ad,i)=>`<div class="showcase-card" data-entry-id="${escapeHTML(ad.id)}" style="--order:${i}"><article class="moment-ad"></article></div>`).join('')+'</div>';for(const panel of $$('.showcase-card')){const ad=ordered.find(item=>item.id===panel.dataset.entryId);if(adModules[ad.id])paintAdModule(panel.querySelector('article'),ad);else panel.querySelector('article').innerHTML=adThumbnail(ad,'showcase-image')}}
+
  function sourceSummary(ad){const match=ad.sourceLabel.match(/(20\d{2}).*?([\d.]+)秒/);return match?match[1]+' 案例录屏 · '+match[2]+'秒':ad.sourceLabel}
  function renderAd(){
-  const ad=currentAd(),vote=currentVote(),wrap=$('.ad-image-wrap');$('#ad-index').textContent=String(session.index+1).padStart(2,'0');$('#ad-title').textContent=ad.title;$('#ad-votes').innerHTML=ad.votes===null?'喜欢，由你来决定':`<span>╲ 参考票数 <b>${ad.votes.toLocaleString('zh-CN')}</b> ╱</span><small class="votes-snapshot">${escapeHTML(ad.votesLabel||'录屏票数快照')}</small>`;
-  $('#ad-brand').textContent=ad.brand||ad.title;$('#brand-avatar').textContent=(ad.brand||'创')[0];if(ad.avatar){const avatar=new Image();avatar.alt='';avatar.src=ad.avatar;avatar.addEventListener('error',()=>avatar.remove());$('#brand-avatar').replaceChildren(avatar)}
-  $('.moment-ad').classList.toggle('captured-ad',!!ad.capture);wrap.classList.toggle('capture-media',!!ad.capture);wrap.style.cssText=captureStyle(ad.capture);$('#ad-image').hidden=!ad.image;$('#ad-image-placeholder').hidden=!!ad.image;
+  const ad=currentAd(),vote=currentVote();paintAdModule($('#vote-scene .moment-ad'),ad,true);const wrap=$('#vote-scene .ad-image-wrap');$('#ad-index').textContent=String(session.index+1).padStart(2,'0');$('#ad-title').textContent=ad.title;$('#ad-votes').innerHTML=ad.votes===null?'喜欢，由你来决定':`<span>╲ 参考票数 <b>${ad.votes.toLocaleString('zh-CN')}</b> ╱</span><small class="votes-snapshot">${escapeHTML(ad.votesLabel||'录屏票数快照')}</small>`;
+
+  $('.moment-ad').classList.toggle('captured-ad',!!ad.capture);wrap.classList.toggle('capture-media',!!ad.capture);wrap.style.cssText=captureStyle(moduleCapture(ad));$('#ad-image').hidden=!ad.image;$('#ad-image-placeholder').hidden=!!ad.image;
   if(ad.image){const adId=ad.id;$('#ad-image').onerror=()=>{if(currentAd().id===adId){$('#ad-image').hidden=true;$('#ad-image-placeholder').hidden=false}};$('#ad-image').onload=()=>{if(currentAd().id===adId)$('#ad-image-placeholder').hidden=true};$('#ad-image').src=ad.image;$('#ad-image').alt=ad.title}
-  $('#ad-caption').textContent=ad.caption;$('.ad-card-bottom>span').textContent=sourceSummary(ad)||'广告';$('#ad-source').hidden=!ad.sourceUrl;prepareFlight();$('#vote-button').hidden=!!vote;$('#vote-button').disabled=!!pendingFlightId;$('#already-voted').hidden=!vote;$('#vote-brand-label').textContent=ad.brand.split(/\s/).slice(-1)[0]||'';
-  $('.vote-progress').innerHTML='已投 <b class="vote-count">'+session.votes.length+'</b> / 10 票';$('#next-step').innerHTML='下一步 <span>↓</span>';$('#next-step').disabled=!session.votes.length||!!pendingFlightId;$('#previous-ad').disabled=session.index===0||!!pendingFlightId;$('#next-ad').disabled=session.index===ads.length-1||!!pendingFlightId;refreshVoteCounts();if(!adCarouselBusy)syncAdNeighbors();
+  $('#ad-caption').textContent=adModules[ad.id]?.caption||ad.caption;$('.ad-card-bottom>span').textContent=sourceSummary(ad)||'广告';$('#ad-source').hidden=!ad.sourceUrl;prepareFlight();$('#vote-button').hidden=!!vote;$('#vote-button').disabled=!!pendingFlightId;$('#already-voted').hidden=!vote;$('#vote-brand-label').textContent=ad.brand.split(/\s/).slice(-1)[0]||'';
+  $('.vote-progress').innerHTML='已投 <b class="vote-count">'+session.votes.length+'</b> / 10 票';$('#next-step').innerHTML='下一步 <span>↓</span>';$('#next-step').disabled=!session.votes.length||!!pendingFlightId;$('#previous-ad').disabled=ads.length<2||!!pendingFlightId;$('#next-ad').disabled=ads.length<2||!!pendingFlightId;refreshVoteCounts();if(!adCarouselBusy)syncAdNeighbors();
  }
- function carouselStep(){return $('#vote-scene').getBoundingClientRect().width+18}
+ function carouselStep(){return $('#vote-scene').getBoundingClientRect().width+$('#vote-view').clientWidth/402*24}
  function cloneAdScene(index){
   const ad=ads[index],copy=$('#vote-scene').cloneNode(true);copy.querySelector('#vote-flight')?.remove();
   for(const el of [copy,...copy.querySelectorAll('[id]')])el.removeAttribute('id');
   copy.className='ad-carousel-slide';copy.setAttribute('aria-hidden','true');copy.inert=true;copy.dataset.previewIndex=String(index);
   copy.querySelectorAll('[tabindex]').forEach(el=>el.removeAttribute('tabindex'));copy.querySelectorAll('button,a').forEach(el=>el.tabIndex=-1);
-  const moment=copy.querySelector('.moment-ad'),wrap=copy.querySelector('.ad-image-wrap'),image=copy.querySelector('.ad-capture-frame>img');
-  moment.classList.toggle('captured-ad',!!ad.capture);wrap.classList.toggle('capture-media',!!ad.capture);wrap.style.cssText=captureStyle(ad.capture);
-  copy.querySelector('.moment-profile b').textContent=ad.brand||ad.title;const avatar=copy.querySelector('.brand-avatar');avatar.textContent=(ad.brand||'创')[0];if(ad.avatar){const img=new Image();img.alt='';img.src=ad.avatar;avatar.replaceChildren(img)}
-  if(image){image.hidden=!ad.image;if(ad.image){image.src=ad.image;image.alt=''}image.draggable=false}
-  const placeholder=copy.querySelector('.ad-image-placeholder');if(placeholder)placeholder.hidden=!!ad.image;
-  copy.querySelector('.ad-caption').textContent=ad.caption;copy.querySelector('.ad-card-bottom>span').textContent=sourceSummary(ad)||'广告';
+  const moment=copy.querySelector('.moment-ad');paintAdModule(moment,ad);
+
   const hasVote=session.votes.some(vote=>vote.id===ad.id);copy.querySelector('.heart-vote').hidden=hasVote;copy.querySelector('.heart-vote').disabled=false;copy.querySelector('.already-voted').hidden=!hasVote;copy.querySelector('.vote-button-copy small').textContent=ad.brand.split(/\s/).slice(-1)[0]||'';
   styleVoteHeart(copy.querySelector('.heart-vote'),index);
   styleVoteHeart(copy.querySelector('.already-voted'),index);
   return copy;
  }
- function placeAdSlide(slide,x){const progress=Math.min(1,Math.abs(x)/carouselStep());slide.style.transform=`translate3d(${x}px,0,0) rotateY(${-Math.sign(x)*progress*4}deg) scale(${1-progress*.018})`}
+ function placeAdSlide(slide,x){const progress=Math.min(1,Math.abs(x)/carouselStep());slide.style.transform=`translate3d(${x}px,0,0) rotateY(${-Math.sign(x)*progress*4}deg) rotateZ(${Math.sign(x)*progress*5}deg) scale(${1-progress*.018})`}
  function syncAdNeighbors(){
   const carousel=$('#ad-carousel');if(!carousel||adCarouselBusy)return;carousel.querySelectorAll('.ad-carousel-slide').forEach(el=>el.remove());
-  for(const direction of [-1,1]){const index=session.index+direction;if(index<0||index>=ads.length)continue;const copy=cloneAdScene(index);copy.dataset.direction=String(direction);carousel.append(copy);placeAdSlide(copy,direction*carouselStep())}
+  for(const direction of [-1,1]){const index=(session.index+direction+ads.length)%ads.length;if(ads.length<2)continue;const copy=cloneAdScene(index);copy.dataset.direction=String(direction);carousel.append(copy);placeAdSlide(copy,direction*carouselStep())}
  }
  function cancelAdCarousel(){
   adSlideToken++;clearTimeout(adCarouselTimer);if(adTransitionCleanup){adTransitionCleanup();adTransitionCleanup=null}adCarouselBusy=false;adPointer=null;adDragOffset=0;
   const carousel=$('#ad-carousel'),scene=$('#vote-scene');if(!carousel||!scene)return;carousel.classList.remove('is-dragging','is-switching');carousel.querySelectorAll('.ad-carousel-slide').forEach(el=>el.remove());carousel.style.removeProperty('min-height');scene.style.removeProperty('transform');scene.style.removeProperty('transition');scene.style.removeProperty('pointer-events');
-  const heading=$('.vote-heading');heading.style.removeProperty('opacity');heading.style.removeProperty('transition');if(view==='vote'&&manifestReady){$('#previous-ad').disabled=session.index===0||!!pendingFlightId;$('#next-ad').disabled=session.index===ads.length-1||!!pendingFlightId;$('#next-step').disabled=!session.votes.length||!!pendingFlightId}
+  const heading=$('.vote-heading');heading.style.removeProperty('opacity');heading.style.removeProperty('transition');if(view==='vote'&&manifestReady){$('#previous-ad').disabled=ads.length<2||!!pendingFlightId;$('#next-ad').disabled=ads.length<2||!!pendingFlightId;$('#next-step').disabled=!session.votes.length||!!pendingFlightId}
  }
  function finishAdSlide(token){if(token!==adSlideToken)return;cancelAdCarousel();if(view==='vote')renderAd()}
  function paintAdDrag(offset){
@@ -277,8 +287,8 @@ if(typeof document!=='undefined'){
   $('.vote-heading').style.transition=`opacity ${duration}ms ease`;requestAnimationFrame(()=>{if(token!==adSlideToken)return;paintAdDrag(0);$('.vote-heading').style.opacity='1'});adCarouselTimer=setTimeout(()=>finishAdSlide(token),duration+35);
  }
  function moveAd(direction){
-  if(!manifestReady||view!=='vote'||pendingFlightId||adCarouselBusy)return;const index=session.index+direction;
-  if(index<0||index>=ads.length){settleAdDrag();return}
+  if(!manifestReady||view!=='vote'||pendingFlightId||adCarouselBusy)return;const index=(session.index+direction+ads.length)%ads.length;
+  if(ads.length<2){settleAdDrag();return}
   if(reduced()){cancelAdCarousel();session.index=index;displayedIndex=index;save();renderAd();return}
   $('#vote-view').classList.remove('vote-entry');const scene=$('#vote-scene'),carousel=$('#ad-carousel'),offset=adDragOffset,step=carouselStep(),outgoing=cloneAdScene(session.index),token=++adSlideToken;
   adCarouselBusy=true;adPointer=null;carousel.classList.remove('is-dragging');carousel.classList.add('is-switching');carousel.style.minHeight=scene.offsetHeight+'px';carousel.querySelectorAll('.ad-carousel-slide').forEach(el=>el.remove());outgoing.classList.add('ad-outgoing');carousel.append(outgoing);placeAdSlide(outgoing,offset);
@@ -292,7 +302,7 @@ if(typeof document!=='undefined'){
   const carousel=$('#ad-carousel');carousel.addEventListener('dragstart',event=>event.preventDefault());
   carousel.addEventListener('pointerdown',event=>{if(view!=='vote'||!manifestReady||pendingFlightId||adCarouselBusy||event.target.closest('button,a'))return;adPointer={id:event.pointerId,x:event.clientX,y:event.clientY,time:performance.now(),dragging:false};adDragOffset=0});
   carousel.addEventListener('pointermove',event=>{if(!adPointer||adPointer.id!==event.pointerId)return;const dx=event.clientX-adPointer.x,dy=event.clientY-adPointer.y;if(!adPointer.dragging){if(Math.abs(dy)>9&&Math.abs(dy)>Math.abs(dx)*1.15){adPointer=null;return}if(Math.abs(dx)<8||Math.abs(dx)<Math.abs(dy)*1.15)return;adPointer.dragging=true;carousel.classList.add('is-dragging');try{carousel.setPointerCapture(event.pointerId)}catch{}}
-   if(event.cancelable)event.preventDefault();let offset=dx;if((offset>0&&session.index===0)||(offset<0&&session.index===ads.length-1))offset*=.23;paintAdDrag(Math.max(-carouselStep()*.94,Math.min(carouselStep()*.94,offset)));
+   if(event.cancelable)event.preventDefault();let offset=dx;paintAdDrag(Math.max(-carouselStep()*.94,Math.min(carouselStep()*.94,offset)));
   });
   function release(event,cancelled=false){if(!adPointer||adPointer.id!==event.pointerId)return;const drag=adPointer,offset=adDragOffset;adPointer=null;if(!drag.dragging)return;try{carousel.releasePointerCapture(event.pointerId)}catch{}const distance=Math.abs(offset),quick=performance.now()-drag.time<300&&distance>27;if(!cancelled&&(distance>Math.min(76,carouselStep()*.2)||quick)){moveAd(offset<0?1:-1)}else settleAdDrag()}
   carousel.addEventListener('pointerup',event=>release(event));carousel.addEventListener('pointercancel',event=>release(event,true));

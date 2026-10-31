@@ -66,3 +66,12 @@
 @keyframes envelope-reclose{from,to{transform:none}}
 @keyframes envelope-flap-open{0%,30%{transform:perspective(900px) rotateX(0deg);z-index:7}60%{transform:perspective(900px) rotateX(90deg);z-index:7}60.1%{transform:perspective(900px) rotateX(90deg);z-index:3}100%{transform:perspective(900px) rotateX(180deg);z-index:3}}
 @keyframes envelope-flap-close{0%,30%{transform:perspective(900px) rotateX(180deg);z-index:3}65%{transform:perspective(900px) rotateX(90deg);z-index:3}65.1%{transform:perspective(900px) rotateX(90deg);z-index:7}100%{transform:perspective(900px) rotateX(0deg);z-index:7}}
+
+/* Figma iPhone 14 Pro / 15 Pro: 393 × 852; desktop shares the 393px artboard. */
+.phone-app{max-width:393px}
+.mail-flow{--u:calc(min(100vw,393px) / 402)}
+#vote-view{--ad-u:calc(min(100vw,393px) / 402)}
+#showcase .showcase-deck{--entry-card-width:calc(min(393px,100vw) * .752);--entry-step:calc(var(--entry-card-width) + min(393px,100vw) / 402 * 24)}
+#showcase .showcase-track{gap:calc(min(393px,100vw) / 402 * 24);top:calc(min(393px,100vw) / 402 * 150)}
+
+#cover{height:max(calc(min(393px,100vw) * 2.0356234),calc(100svh - 52px))}
