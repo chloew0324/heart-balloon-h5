@@ -1,0 +1,68 @@
+/* Approved carousel and one shared 5:8 letter scene. */
+.mail-flow{background:linear-gradient(#fff 0%,#fff 67%,#f1fbf5 100%);min-height:max(calc(790 * var(--u)),calc(100svh - 52px))}
+.mail-flow::before{display:none}
+#choose-view{min-height:inherit}
+#choose-view .choose-heading{top:calc(51 * var(--u));left:calc(20 * var(--u));right:calc(20 * var(--u))}
+#choose-view h1{font-size:calc(24 * var(--u));font-weight:650;line-height:1.55;letter-spacing:0;color:#111}
+#choice-vote-count{font-size:calc(28 * var(--u));font-style:italic;color:#22c679;padding:0 2px}
+#choose-view .choose-intro{font-size:calc(21 * var(--u));font-weight:400;line-height:1.5;color:#3cba84;margin-top:calc(17 * var(--u))}
+.choice-guide-arrow{position:absolute;left:calc(319 * var(--u));top:calc(195 * var(--u));width:calc(26 * var(--u));height:calc(28 * var(--u));fill:none;stroke:#4ac38f;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+#heart-choices.choice-carousel{position:absolute;top:calc(209 * var(--u));left:0;right:0;width:100%;height:calc(279 * var(--u));display:block;margin:0;overflow:hidden;touch-action:pan-y;transform:none;outline-offset:-3px}
+.choice-slide{position:absolute;top:0;left:50%;width:calc(228 * var(--u));height:calc(228 * var(--u));padding:0;border:0;background:none;transform:translateX(-50%);opacity:1;isolation:isolate;cursor:pointer;transform-origin:0 0}
+.choice-slide.is-previous{left:calc(-110 * var(--u));top:calc(41 * var(--u));width:calc(190 * var(--u));height:calc(190 * var(--u));transform:none;opacity:.5}
+.choice-slide.is-next{left:calc(100% - 80 * var(--u));top:calc(41 * var(--u));width:calc(190 * var(--u));height:calc(190 * var(--u));transform:none;opacity:.5}
+.choice-slide>img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none;-webkit-user-drag:none}
+.choice-thread{position:absolute;left:calc(50% - 16 * var(--u));top:calc(100% - 11 * var(--u));width:calc(32 * var(--u));height:calc(48 * var(--u));fill:none;stroke:var(--ink);stroke-width:.8;stroke-linecap:round;opacity:.55;pointer-events:none}
+.choice-slide.is-previous .choice-thread,.choice-slide.is-next .choice-thread{height:calc(39 * var(--u))}
+.choice-slide.is-current>img,.choice-slide.is-current>.choice-thread{animation:choice-drift 5.6s ease-in-out infinite}
+.choice-slide:focus-visible{outline:1.5px solid #62bc93;outline-offset:3px;border-radius:32%}
+#choose-view .choice-description{position:absolute;left:calc(30 * var(--u));right:calc(30 * var(--u));top:calc(492 * var(--u));margin:0;font-size:calc(13 * var(--u));font-weight:400;line-height:1.8;color:#8b978f;text-align:center}
+.choice-navigation{position:absolute;top:calc(540 * var(--u));left:calc(55 * var(--u));right:calc(55 * var(--u));display:flex;justify-content:center;align-items:center;gap:calc(12 * var(--u));font-size:calc(11 * var(--u));color:#a0afa4;line-height:1.6}
+.choice-navigation button{width:calc(24 * var(--u));height:calc(28 * var(--u));padding:0;border:0;background:none;color:#a0afa4;font-size:calc(20 * var(--u));line-height:1;flex:none}
+.choice-navigation button:disabled{opacity:.2}
+#choose-view .choose-actions{top:calc(665 * var(--u));left:calc(61 * var(--u));right:calc(61 * var(--u))}
+#choose-view #make-cards{height:calc(55.5 * var(--u));font-size:calc(16 * var(--u));font-weight:500;line-height:1.3}
+#choose-view>#choose-voting{top:calc(740 * var(--u));font-size:calc(11 * var(--u));color:#8a9d90}
+#choose-view .choose-footer{display:none}
+.letter-is-open .choice-guide-arrow,.letter-is-open .choice-description,.letter-is-open .choice-navigation{opacity:0;pointer-events:none}
+#mail-flow.letter-is-open{min-height:max(calc(790 * var(--u)),calc(100svh - 52px))}
+#card-view .letter-heading,#card-view .letter-doodles{display:none}
+#card-view .letter-blessing{display:none}
+#card-view .card-pagination{top:calc(var(--letter-actions-y) + 4 * var(--u));width:calc(190 * var(--u));grid-template-columns:calc(26 * var(--u)) 1fr calc(26 * var(--u))}
+#card-view .card-pagination>button{color:#aaa1b8;font-size:calc(22 * var(--u));width:calc(26 * var(--u));height:calc(22 * var(--u))}
+#card-view .card-dots>button{width:calc(5 * var(--u));height:calc(5 * var(--u));background:#b7adc499}
+#card-view .card-dots>button.active{background:#9e8cb7}
+#card-view #save-card{top:calc(var(--letter-actions-y) + 60 * var(--u));height:calc(52 * var(--u));font-size:calc(16 * var(--u));background:linear-gradient(100deg,#00b95e,#00cb70)}
+#card-view #card-collected{top:calc(var(--letter-actions-y) + 119 * var(--u));font-size:calc(10 * var(--u));color:#899b91}
+#card-view #card-back-bottom{top:calc(var(--letter-actions-y) + 143 * var(--u));font-size:calc(11 * var(--u));line-height:1.6;min-height:25px;color:#8c9b92}
+#card-view[data-card-count="1"] #save-card{top:calc(var(--letter-actions-y) + 36 * var(--u))}
+#card-view[data-card-count="1"] #card-collected{top:calc(var(--letter-actions-y) + 95 * var(--u))}
+#card-view[data-card-count="1"] #card-back-bottom{top:calc(var(--letter-actions-y) + 119 * var(--u))}
+.letter-memory{top:calc(var(--letter-frame-y) + var(--letter-frame-width) * 1.308);width:calc(var(--letter-frame-width) * .77)}
+.letter-memory p{font-size:calc(var(--letter-frame-width) * .030);line-height:1.35;color:#92a096}
+.letter-memory small{font-size:calc(var(--letter-frame-width) * .020);line-height:1.45;color:#9ca79f;letter-spacing:0}
+/* Match each feedback cloud wash to its balloon, retaining the approved text. */
+.balloon-flight .soft-cloud{background:var(--effect-soft)!important}
+.balloon-flight[data-effect=peach] .cloud-sprite{filter:saturate(.3) hue-rotate(175deg)}
+.balloon-flight[data-effect=lilac] .cloud-sprite{filter:saturate(.35) hue-rotate(105deg)}
+.balloon-flight[data-effect=champagne] .cloud-sprite{filter:saturate(.3) hue-rotate(240deg)}
+@keyframes choice-drift{0%,100%{translate:0 0}50%{translate:0 -2px}}
+@keyframes vote-heart-lift{0%,4%{opacity:0;transform:translate3d(var(--launch-x),var(--launch-y),0) scale(var(--launch-scale))}10%{opacity:1;transform:translate3d(var(--launch-x),calc(var(--launch-y) - 5px),0) scale(var(--launch-scale))}30%{opacity:1;transform:translate3d(-2px,0,0) scale(1.025,.98);animation-timing-function:cubic-bezier(.2,.7,.3,1)}39%{opacity:1;transform:translate3d(0,-4px,0) scale(1)}60%{opacity:1;transform:translate3d(3px,-15px,0) scale(1);animation-timing-function:cubic-bezier(.4,0,.6,1)}82%{opacity:.9;transform:translate3d(-6px,-100px,0) scale(.94)}100%{opacity:0;transform:translate3d(6px,-260px,0) scale(.78)}}
+@media(prefers-reduced-motion:reduce){.choice-slide.is-current>img,.choice-slide.is-current>.choice-thread{animation:none!important}}
+
+/* The vote record is a stationery footer, with an accented handwritten count. */
+.letter-memory{top:calc(var(--letter-frame-y) + var(--letter-frame-width) * 1.282)}
+.letter-memory p{font-size:calc(var(--letter-frame-width) * .03);line-height:1.15;white-space:nowrap}
+.letter-vote-count{font-family:NoteHand,"Hannotate SC",cursive;font-size:calc(var(--letter-frame-width) * .055);font-weight:400;font-style:italic;color:#69b8a6;line-height:1;padding:0 2px}
+.letter-memory small{font-size:calc(var(--letter-frame-width) * .027);line-height:1.4;margin-top:calc(var(--letter-frame-width) * .008)}
+.letter-memory small span{display:block}
+.mailbox-mark{top:72%;width:20%}
+
+/* The paper exits only through the V-shaped mouth, never through the sides
+   or bottom. The opening and the saved card share the same 1000×1600 geometry. */
+#card-view .letter-stage{clip-path:polygon(0 0,100% 0,100% 69.375%,95% 69.375%,50% 81.1875%,5% 69.375%,0 69.375%)}
+/* Keep the envelope body anchored so its mouth and the paper mask stay aligned. */
+@keyframes envelope-settle{from,to{transform:none}}
+@keyframes envelope-reclose{from,to{transform:none}}
+@keyframes envelope-flap-open{0%,30%{transform:perspective(900px) rotateX(0deg);z-index:7}60%{transform:perspective(900px) rotateX(90deg);z-index:7}60.1%{transform:perspective(900px) rotateX(90deg);z-index:3}100%{transform:perspective(900px) rotateX(180deg);z-index:3}}
+@keyframes envelope-flap-close{0%,30%{transform:perspective(900px) rotateX(180deg);z-index:3}65%{transform:perspective(900px) rotateX(90deg);z-index:3}65.1%{transform:perspective(900px) rotateX(90deg);z-index:7}100%{transform:perspective(900px) rotateX(0deg);z-index:7}}

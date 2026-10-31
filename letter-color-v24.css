@@ -1,0 +1,13 @@
+/* A few soft colors around the white paper, echoing the first keepsake cards. */
+#mail-flow::after{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:0;background:radial-gradient(ellipse 95% 76% at 0% 0%,var(--sky-a,#d6c9f2),transparent 78%),radial-gradient(ellipse 95% 94% at 100% 38%,var(--sky-b,#c6e5f5),transparent 80%),radial-gradient(ellipse 100% 100% at 10% 100%,var(--sky-c,#e9d7ef),transparent 86%);transition:opacity .45s ease}
+#mail-flow.letter-is-open::after{opacity:.9}
+#mail-flow.letter-is-open::before{opacity:.48}
+#mail-flow.letter-is-unsealing::after{animation:keepsake-sky-in .55s ease both}
+@keyframes keepsake-sky-in{from{opacity:.25}to{opacity:.9}}
+@media(prefers-reduced-motion:reduce){#mail-flow::after{animation:none!important;transition:none!important}}
+.letter-doodles{position:absolute;left:var(--letter-frame-x);top:var(--letter-frame-y);width:var(--letter-frame-width);height:calc(var(--letter-frame-width) * 1.6);z-index:3;pointer-events:none}.letter-doodles svg{display:block;width:100%;height:100%;fill:none;stroke:var(--letter-ink);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:.32}.letter-doodles path:first-child{stroke:#c9b377;stroke-width:2}
+.letter-memory{position:absolute;left:50%;top:calc(var(--letter-frame-y) + var(--letter-frame-width) * 1.308);width:calc(var(--letter-frame-width) * .72);transform:translateX(-50%);z-index:7;text-align:center;color:#92a096;line-height:1.6;pointer-events:none}.letter-memory p{margin:0;font-size:calc(var(--letter-frame-width) * .03);line-height:1.35;letter-spacing:.2px;white-space:nowrap}.letter-memory small{display:block;margin-top:calc(var(--letter-frame-width) * .007);font-size:calc(var(--letter-frame-width) * .022);line-height:1.3;letter-spacing:.1px;white-space:nowrap}
+#card-view.card-reveal .letter-doodles{animation:letter-actions-in .4s .15s both}#card-view.card-reveal .letter-memory{animation:letter-actions-in .4s 1.5s both}#card-view.card-return .letter-memory{opacity:0;transition:opacity .16s}
+@media(prefers-reduced-motion:reduce){#card-view.card-reveal .letter-doodles,#card-view.card-reveal .letter-memory{animation:none!important}}
+
+

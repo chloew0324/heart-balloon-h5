@@ -1,0 +1,79 @@
+/* One continuous lift begins at the voting heart, with four distinct balloon materials. */
+.balloon-flight{--flight-duration:3200ms;--effect-ink:#258f70;--effect-soft:#d5f9e7;--launch-x:0px;--launch-y:180px;--launch-scale:.35}
+.balloon-flight[data-effect=peach]{--effect-ink:#c47889;--effect-soft:#fce7eb}
+.balloon-flight[data-effect=lilac]{--effect-ink:#9984ba;--effect-soft:#eee8f9}
+.balloon-flight[data-effect=champagne]{--effect-ink:#bf9a6d;--effect-soft:#fcf0df}
+.balloon-flight .flight-anchor{top:61%;width:min(82vw,330px);height:auto;aspect-ratio:1;z-index:3}
+.balloon-flight .flight-balloon{transform-origin:50% 50%;animation:vote-heart-lift var(--flight-duration) both;filter:drop-shadow(0 12px 18px #35856112);will-change:transform,opacity}
+.balloon-flight .flight-surface{animation:vote-heart-breathe 4.5s ease-in-out infinite}
+.vote-is-flying .already-voted{visibility:hidden}
+.vote-is-flying .heart-vote:disabled{animation:heart-touch .26s ease-out both}
+.balloon-flight .flight-theme,.balloon-flight .effect-lines{display:none}
+.effect-ornaments{position:absolute;inset:0;pointer-events:none;z-index:1}
+.effect-sparks{position:absolute;inset:0}
+.effect-sparks i{position:absolute;left:var(--spark-x);top:var(--spark-y);width:var(--spark-size);height:var(--spark-size);opacity:0;background:var(--effect-ink);clip-path:polygon(50% 0,60% 38%,100% 50%,60% 62%,50% 100%,40% 62%,0 50%,40% 38%);animation:vote-glint var(--flight-duration) both;animation-delay:var(--spark-delay)}
+.balloon-flight .vote-atmosphere{height:53dvh;max-height:450px;animation:vote-cloud-wash var(--flight-duration) ease-in-out both}
+.balloon-flight .mist-wash{inset:0;opacity:.8;background:linear-gradient(180deg,transparent 0%,var(--effect-soft) 100%)}
+.balloon-flight .cloud-sprite{opacity:.46;filter:saturate(.65)}
+.balloon-flight .cloud-back{bottom:9%;opacity:.22}
+.balloon-flight .cloud-front{bottom:-13%;opacity:.6}
+.balloon-flight .mist-front{opacity:.25}
+.balloon-flight .flight-mini{animation:vote-companion-rise var(--flight-duration) both;animation-delay:var(--mini-delay);filter:drop-shadow(0 2px 3px #328a6610)}
+.balloon-flight .mini-one{top:37%;left:3%;width:30px;height:33px}
+.balloon-flight .mini-two{top:34%;right:1%;width:40px;height:43px}
+.balloon-flight .mini-three{top:76%;left:3%;width:30px;height:33px}
+.balloon-flight .mini-four{top:72%;right:3%;width:28px;height:31px}
+.balloon-flight .mini-five{top:91%;right:17%}
+.balloon-flight .mini-six{top:85%;left:24%}
+.balloon-flight .mini-seven{top:20%;right:20%}
+.balloon-flight .balloon-strings{left:0;top:92.5%;width:100%;height:64%;color:var(--effect-ink);overflow:visible;mask-image:none;transform-origin:50% 0;animation:vote-silk-sway 3.6s ease-in-out infinite alternate}
+.balloon-flight .balloon-strings path{stroke:url(#silk-thread);stroke-width:.85;stroke-linecap:round;opacity:.72;vector-effect:non-scaling-stroke}
+.balloon-flight .balloon-strings path+path{stroke-width:.6;opacity:.3}
+.replay-vote{font-size:10px!important;letter-spacing:.5px;color:#82a58d!important;min-height:32px!important}
+@keyframes heart-touch{0%{opacity:1;transform:scale(1)}45%{opacity:1;transform:scale(.9,.95)}100%{opacity:0;transform:scale(1.04)}}
+@keyframes vote-heart-lift{
+ 0%,4%{opacity:0;transform:translate3d(var(--launch-x),var(--launch-y),0) scale(var(--launch-scale))}
+ 10%{opacity:1;transform:translate3d(var(--launch-x),calc(var(--launch-y) - 5px),0) scale(var(--launch-scale))}
+ 30%{opacity:1;transform:translate3d(-2px,0,0) scale(1.025,.98);animation-timing-function:cubic-bezier(.2,.7,.3,1)}
+ 39%{opacity:1;transform:translate3d(0,-4px,0) scale(1)}
+ 60%{opacity:1;transform:translate3d(3px,-15px,0) scale(1);animation-timing-function:cubic-bezier(.5,0,.65,.6)}
+ 91%{opacity:1;transform:translate3d(var(--launch-x),var(--launch-y),0) scale(var(--launch-scale))}
+ 100%{opacity:0;transform:translate3d(var(--launch-x),var(--launch-y),0) scale(var(--launch-scale))}
+}
+@keyframes vote-heart-breathe{0%,100%{transform:rotate(-1deg)}50%{transform:rotate(1.2deg)}}
+@keyframes vote-companion-rise{0%,17%{opacity:0;transform:translateY(63px) scale(.5) rotate(var(--mini-turn))}36%{opacity:var(--mini-opacity);transform:translateY(0) scale(1) rotate(var(--mini-turn))}62%{opacity:var(--mini-opacity);transform:translateY(-18px) scale(1) rotate(calc(var(--mini-turn) + 4deg))}100%{opacity:0;transform:translateY(-150px) scale(.75) rotate(var(--mini-turn))}}
+@keyframes vote-cloud-wash{0%,4%{opacity:0}29%,68%{opacity:1}100%{opacity:0}}
+@keyframes vote-glint{0%,20%{opacity:0;transform:translateY(20px) scale(.2)}38%{opacity:.42;transform:translateY(0) scale(1)}67%{opacity:.25}100%{opacity:0;transform:translateY(-100px) scale(.3)}}
+@keyframes vote-silk-sway{from{transform:skewX(-3deg)}to{transform:skewX(5deg)}}
+@media(max-height:700px){.balloon-flight .flight-anchor{width:min(76vw,305px);top:61%}.balloon-flight .vote-atmosphere{height:47dvh}}
+@media(prefers-reduced-motion:reduce){.balloon-flight .flight-balloon,.balloon-flight .flight-mini,.balloon-flight .flight-surface,.balloon-flight .balloon-strings,.balloon-flight .vote-atmosphere{animation:none!important}.effect-ornaments{display:none}.vote-is-flying .already-voted{visibility:visible}}
+/* The trigger uses the same colour family as its large and companion hearts. */
+.vote-scene .heart-vote,.ad-carousel-slide .heart-vote{--vote-ink:#28593e;--vote-soft:#c5efd5;width:142px;height:136px;margin-bottom:2px;filter:drop-shadow(0 5px 7px #46775e0c)}
+.heart-vote .vote-heart-image{position:absolute;inset:-8px 0 0;filter:none;animation:vote-heart-idle 3.8s ease-in-out infinite}
+.heart-vote:after{content:'';position:absolute;bottom:-3px;left:34%;width:32%;height:6px;border-radius:50%;background:var(--vote-soft);opacity:.37;filter:blur(1.5px)}
+.heart-vote .vote-button-copy{top:35%;left:12%;right:12%;color:var(--vote-ink);text-shadow:0 1px 2px #ffffff85}
+.heart-vote .vote-button-copy b{font-size:19px;font-weight:600;letter-spacing:1px}
+.heart-vote .vote-button-copy small{font-size:7px;letter-spacing:.3px;margin-top:4px}
+.heart-vote:disabled .vote-heart-image{animation:none}
+@keyframes vote-heart-idle{0%,100%{transform:translateY(1px) rotate(-1deg)}50%{transform:translateY(-3px) rotate(1deg)}}
+@media(prefers-reduced-motion:reduce){.heart-vote .vote-heart-image{animation:none}}
+
+.already-voted{gap:0!important;--vote-ink:#28593e;--vote-soft:#c5efd5}
+.voted-heart{position:relative;display:block;width:132px;height:120px;margin:0 auto}
+.voted-heart .vote-heart-image{position:absolute;inset:-8px 0 0;filter:none}
+.voted-heart .voted-mark{position:absolute;left:10%;right:10%;top:40%;color:var(--vote-ink);font-size:14px;font-weight:500;letter-spacing:1px;text-align:center;z-index:2}
+.already-voted .replay-vote{margin-top:-9px}
+
+.balloon-flight .flight-mini{--mini-opacity:.9;filter:saturate(1.25) drop-shadow(0 2px 3px #328a6610)}
+
+/* The voting control is an opaque, softly rounded 3D heart; only feedback uses balloons. */
+.heart-vote .vote-heart-image,.voted-heart .vote-heart-image{inset:-2px 0 0;filter:none;animation:none}
+.vote-solid-heart{display:block;width:100%;height:100%;overflow:visible}
+.heart-vote .vote-button-copy{color:#fff;text-shadow:0 1px 2px #276f3c1f;top:36%}
+.heart-vote .vote-button-copy small{font-size:7px;opacity:.84}
+.voted-heart .voted-mark{color:#fff}
+.heart-vote:after{left:32%;width:36%;height:6px;bottom:-1px;opacity:.25;filter:blur(1px)}
+
+.vote-heart-image>img{display:block;width:100%;height:100%;object-fit:contain}
+.vote-scene .heart-vote,.ad-carousel-slide .heart-vote{width:132px;height:128px}
+.heart-vote .vote-button-copy b{font-size:18px;letter-spacing:1.5px}

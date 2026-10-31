@@ -1,0 +1,82 @@
+{
+  "status": "captured_from_user_recording",
+  "sourceLabel": "四支广告均截自用户提供的案例录屏，无AI重绘；票数为录屏快照",
+  "ads": [
+    {
+      "id": "2025-boucheron",
+      "title": "宝诗龙与肖战诠释珠宝魅力",
+      "brand": "Boucheron宝诗龙",
+      "votes": 241781,
+      "votesLabel": "录屏票数快照",
+      "image": "assets/ads/boucheron.jpg",
+      "caption": "",
+      "sourceUrl": "",
+      "sourceLabel": "用户提供的2025案例录屏 · 143秒 · 票数为录屏快照，非实时",
+      "capture": {
+        "x": 151,
+        "y": 762,
+        "width": 905,
+        "height": 910,
+        "sourceWidth": 1206,
+        "sourceHeight": 2622
+      }
+    },
+    {
+      "id": "2025-lays",
+      "title": "和范丞丞猜拳有乐事发生",
+      "brand": "乐事",
+      "votes": 241134,
+      "votesLabel": "录屏票数快照",
+      "image": "assets/ads/lays.jpg",
+      "caption": "",
+      "sourceUrl": "",
+      "sourceLabel": "用户提供的2025案例录屏 · 148秒 · 票数为录屏快照，非实时",
+      "capture": {
+        "x": 132,
+        "y": 762,
+        "width": 941,
+        "height": 1090,
+        "sourceWidth": 1206,
+        "sourceHeight": 2622
+      }
+    },
+    {
+      "id": "2025-mercedes",
+      "title": "“钦”爱的好车，感觉对了",
+      "brand": "梅赛德斯-奔驰",
+      "votes": 70886,
+      "votesLabel": "录屏票数快照",
+      "image": "assets/ads/mercedes.jpg",
+      "caption": "",
+      "sourceUrl": "",
+      "sourceLabel": "用户提供的2025案例录屏 · 156秒 · 票数为录屏快照，非实时",
+      "capture": {
+        "x": 143,
+        "y": 763,
+        "width": 906,
+        "height": 755,
+        "sourceWidth": 1206,
+        "sourceHeight": 2622
+      }
+    },
+    {
+      "id": "2025-tiffany",
+      "title": "等候与重聚的故事好温暖",
+      "brand": "Tiffany蒂芙尼",
+      "votes": 338376,
+      "votesLabel": "录屏票数快照",
+      "image": "assets/ads/tiffany.jpg",
+      "caption": "",
+      "sourceUrl": "",
+      "sourceLabel": "用户提供的2025案例录屏 · 160.5秒 · 票数为录屏快照，非实时",
+      "capture": {
+        "x": 137,
+        "y": 762,
+        "width": 905,
+        "height": 1105,
+        "sourceWidth": 1206,
+        "sourceHeight": 2622
+      }
+    }
+  ]
+}

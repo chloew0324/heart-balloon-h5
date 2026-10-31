@@ -1,0 +1,23 @@
+/* The live card and its voting heart travel together; progress stays anchored. */
+.ad-carousel{position:relative;isolation:isolate;overflow:visible;touch-action:pan-y}
+.vote-scene{position:relative;z-index:2;transform:none;backface-visibility:hidden}
+.vote-scene>.ad-stage{perspective:none}
+.vote-scene>.vote-controls,.ad-carousel-slide>.vote-controls{position:relative;min-height:142px;padding-top:14px}
+.vote-scene .already-voted,.ad-carousel-slide .already-voted{min-height:125px}
+.ad-carousel-slide{position:absolute;left:0;top:0;width:100%;z-index:1;pointer-events:none;user-select:none;backface-visibility:hidden;transform-origin:50% 50%}
+.ad-carousel-slide .ad-stage{perspective:none;outline:none}
+.ad-carousel-slide .vote-controls{z-index:auto}
+.ad-carousel-slide .heart-vote,.ad-carousel-slide .heart-vote:disabled{animation:none;opacity:1;transform:none;filter:none}
+.ad-carousel-slide .replay-vote{opacity:.7}
+.ad-carousel-slide .moment-ad{box-shadow:none}
+.ad-carousel-slide .ad-card-bottom{opacity:.8}
+.ad-carousel-slide.ad-outgoing{z-index:3}
+.ad-carousel.is-dragging .vote-scene,.ad-carousel.is-dragging .ad-carousel-slide,.ad-carousel.is-switching .vote-scene,.ad-carousel.is-switching .ad-carousel-slide{will-change:transform}
+.ad-carousel.is-switching>.vote-scene{pointer-events:none}
+.ad-carousel.is-dragging .ad-stage{cursor:grabbing}
+.vote-common-controls{position:relative;z-index:8;min-height:61px;text-align:center;padding-top:0}
+.vote-common-controls .vote-progress{margin:0 0 1px}
+.vote-common-controls .next-step{margin:0 auto;min-height:35px}
+.vote-view .swipe-navigation{position:relative;z-index:8;margin-top:2px}
+@media(max-height:760px) and (max-width:650px){.vote-scene>.vote-controls,.ad-carousel-slide>.vote-controls{min-height:128px;padding-top:11px}.vote-scene .already-voted,.ad-carousel-slide .already-voted{min-height:114px}.vote-common-controls{min-height:57px}}
+@media(prefers-reduced-motion:reduce){.ad-carousel-slide{display:none}.vote-scene,.ad-carousel-slide,.vote-heading{transition:none!important}}

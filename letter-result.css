@@ -1,0 +1,35 @@
+/* One 5:8 composition: back/flap → paper with its balloon → envelope front. */
+#mail-flow.letter-is-open{min-height:max(calc(815 * var(--u)),calc(100svh - 52px))}
+#card-view{--letter-page-gap:26px;position:absolute;inset:0;z-index:auto;min-height:0;height:100%;padding:0;text-align:center;background:transparent;overflow:visible;isolation:auto;animation:none}
+#card-view::before{display:none}
+#card-view .letter-heading{position:absolute;top:calc(17 * var(--u));left:0;right:0;padding:0 18px;z-index:5}.letter-heading .eyebrow{font-size:calc(10 * var(--u));line-height:18px;letter-spacing:1px;color:#8a9d90;margin:0 0 calc(7 * var(--u))}.letter-heading h1{font-size:calc(24 * var(--u));font-weight:600;line-height:1.4;letter-spacing:.3px;margin:0;color:#17241c}
+#card-view .card-topline{display:none}
+#card-view .letter-stage{position:absolute;left:var(--letter-paper-x);top:var(--letter-paper-y);width:var(--letter-paper-width);height:var(--letter-paper-height);margin:0;z-index:4;overflow:hidden;isolation:isolate}
+#card-view .keepsake-carousel{position:absolute;inset:0;width:100%;height:100%;overflow:hidden}
+#card-view .keepsake-track{height:100%;align-items:stretch;transition:transform .55s cubic-bezier(.2,.7,.25,1)}
+#card-view .keepsake-slide{position:relative;height:100%;padding:0;align-items:flex-start;overflow:visible}
+#card-view .keepsake-slide>img{display:block;width:100%;height:100%;max-height:none;object-fit:contain;object-position:50% 0;transform-origin:50% 85%;user-select:none;-webkit-user-drag:none}
+#card-view .letter-blessing{position:absolute;left:calc(12 * var(--u));right:calc(12 * var(--u));top:var(--letter-actions-y);font-size:calc(11 * var(--u));line-height:calc(22 * var(--u));letter-spacing:.1px;color:#7d9082;margin:0;z-index:7}
+#card-view .card-pagination{position:absolute;left:50%;top:calc(var(--letter-actions-y) + 26 * var(--u));transform:translateX(-50%);grid-template-columns:26px 1fr 26px;width:180px;max-width:180px;margin:0;gap:5px;z-index:7}#card-view .card-pagination>button{width:26px;height:22px;font-size:22px;line-height:22px}#card-view .card-dots{gap:7px;min-height:19px}#card-view .card-dots>button{width:5px;height:5px}
+#card-view[data-card-count="1"]{--letter-page-gap:0px}#card-view[data-card-count="1"] .card-pagination{display:none}#card-view .card-position{display:none}
+#card-view #save-card{position:absolute;left:calc(61 * var(--u));right:calc(61 * var(--u));top:calc(var(--letter-actions-y) + 29 * var(--u) + var(--letter-page-gap));width:auto;height:calc(52 * var(--u));min-height:0;border-radius:calc(28 * var(--u));font-size:calc(16 * var(--u));font-weight:500;letter-spacing:.3px;background:linear-gradient(100deg,#00b95e,#00cb70);box-shadow:none;z-index:7}
+#card-view #card-collected{position:absolute;left:18px;right:18px;top:calc(var(--letter-actions-y) + 88 * var(--u) + var(--letter-page-gap));min-height:16px;font-size:calc(10 * var(--u));line-height:16px;color:#719981;margin:0;text-align:center;z-index:7}
+#card-view #card-back-bottom{position:absolute;left:50%;top:calc(var(--letter-actions-y) + 111 * var(--u) + var(--letter-page-gap));transform:translateX(-50%);white-space:nowrap;font-size:calc(12 * var(--u));line-height:22px;min-height:31px;margin:0;color:#768d7c;z-index:7}
+#card-view .card-load-note{position:absolute;left:18px;right:18px;top:calc(var(--letter-actions-y) - 26px);padding:0;font-size:12px;z-index:7}
+#card-view.card-reveal .keepsake-carousel{animation:none}#card-view.card-reveal .keepsake-track{transition:none}
+#card-view.card-reveal .keepsake-slide.active>img{animation:letter-emerge 1.2s .74s cubic-bezier(.16,.75,.25,1) both}
+#card-view.card-reveal .letter-heading,#card-view.card-reveal .letter-blessing,#card-view.card-reveal .card-pagination,#card-view.card-reveal #save-card,#card-view.card-reveal #card-back-bottom{animation:letter-actions-in .4s 1.5s both}
+@keyframes letter-emerge{0%{opacity:0;transform:translate3d(0,var(--letter-emerge-distance),0) rotateX(6deg) scale(.98)}3%{opacity:1}84%{opacity:1;transform:translate3d(0,-3px,0) rotateX(0) scale(1)}100%{opacity:1;transform:translate3d(0,0,0) rotateX(0) scale(1)}}
+@keyframes letter-actions-in{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){#card-view .keepsake-track{transition:none}#card-view.card-reveal .keepsake-slide.active>img,#card-view.card-reveal .letter-heading,#card-view.card-reveal .letter-blessing,#card-view.card-reveal .card-pagination,#card-view.card-reveal #save-card,#card-view.card-reveal #card-back-bottom{animation:none!important}}
+#card-view .keepsake-slide.active>img{animation:letter-rest 5.8s ease-in-out infinite}
+#card-view.card-reveal .keepsake-slide.active>img{animation:letter-emerge 1.2s .74s cubic-bezier(.16,.75,.25,1) both}
+#card-view.card-reveal .letter-heading{animation-delay:.15s}
+@keyframes letter-rest{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@media(prefers-reduced-motion:reduce){#card-view .keepsake-slide.active>img{animation:none!important}}
+
+/* Each new card is a new opening: the current letter returns first. */
+#card-view.card-return .keepsake-slide.active>img{animation:letter-return .48s cubic-bezier(.35,.05,.65,1) both}
+#card-view.card-return .letter-blessing,#card-view.card-return .card-pagination,#card-view.card-return #save-card,#card-view.card-return #card-collected{opacity:0;transition:opacity .16s;pointer-events:none}
+@keyframes letter-return{0%{opacity:1;transform:translateY(0)}70%{opacity:1}100%{opacity:0;transform:translateY(var(--letter-emerge-distance)) scale(.98)}}
+@media(prefers-reduced-motion:reduce){#card-view.card-return .keepsake-slide.active>img{animation:none!important}}
