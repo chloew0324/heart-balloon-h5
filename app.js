@@ -118,6 +118,7 @@ function normalizeAds(manifest){
  const input=Array.isArray(manifest)?manifest:manifest?.ads,used=new Set();
  return Array.from({length:4},(_,i)=>{const a=Array.isArray(input)&&input[i]&&typeof input[i]==='object'?input[i]:{};let id=typeof a.id==='string'&&a.id?a.id:'ad'+(i+1);if(used.has(id)){id='work-'+(i+1);while(used.has(id))id+='-'}used.add(id);return {id,title:typeof a.title==='string'&&a.title?a.title:'作品 '+(i+1),brand:typeof a.brand==='string'?a.brand:'',votes:typeof a.votes==='number'&&Number.isFinite(a.votes)&&a.votes>=0?Math.floor(a.votes):null,votesLabel:typeof a.votesLabel==='string'?a.votesLabel:'',image:localAdAsset(a.image),avatar:localAdAsset(a.avatar),caption:typeof a.caption==='string'?a.caption:'',sourceUrl:safeSource(a.sourceUrl),sourceLabel:typeof a.sourceLabel==='string'?a.sourceLabel:'',capture:normalizeCapture(a.capture)}});
 }
+function wheelOffset(slot,position,size){return ((slot-position+size/2)%size+size)%size-size/2}
 function previousPage(pages,session){while(pages.length){const page=pages.pop();if(['choose','card'].includes(page.view)&&!session.votes.length)continue;return page}return {view:'landing',index:session.index,currentCard:session.currentCard}}
 function snapshotDownload(id,round,assets={}){const card=CARDS.find(item=>item.id===id);if(!card)return null;const mapped=assets[id],source=typeof mapped==='string'&&(/^(data:image\/(?:png|svg\+xml)[;,]|blob:)/i.test(mapped)||/^assets\/(?:cards|letters-v32)\/[\w.-]+\.(?:png|svg)$/.test(mapped))?mapped:'assets/letters-v32/'+id+'.svg';return {id:card.id,name:card.name,round,source,filename:'心意升空-2026-'+card.name+'-腾讯十周年心意卡.png'}}
 if(typeof module!=='undefined')module.exports={CARDS,VOTE_EFFECTS,earnedCardIds,normalizeSession,collectCard,mergeSession,normalizeCapture,safeSource,normalizeAds,previousPage,snapshotDownload};
@@ -142,20 +143,20 @@ if(typeof document==='undefined'&&typeof require!=='undefined'&&require.main===m
  for(const inputIds of [['ad2','ad2','ad2','ad2'],['ad2','ad2','work-2','work-2'],['work-2','work-2','work-2-','work-2-']])assert.equal(new Set(normalizeAds({ads:inputIds.map(id=>({id}))}).map(ad=>ad.id)).size,4);
  const capture={x:10,y:20,width:200,height:300,sourceWidth:400,sourceHeight:800};assert.deepEqual(normalizeCapture(capture),capture);assert.equal(normalizeCapture({...capture,x:300}),null);assert.equal(safeSource('javascript:alert(1)'),'');assert.equal(normalizeAds({ads:[{image:'../secret'}]})[0].image,'');
  const assets={curiosity:'data:image/png;base64,original'},snapshot=snapshotDownload('curiosity',1,assets);assets.curiosity='changed';assert.equal(snapshot.source,'data:image/png;base64,original');assert.ok(snapshot.filename.includes('好奇'));assert.equal(snapshotDownload('unknown',1),null);assert.equal(snapshotDownload('passion',1,{passion:'assets/letters-v32/passion.svg'}).source,'assets/letters-v32/passion.svg');
- const source=require('node:fs').readFileSync(__filename,'utf8'),nodes=new Map(),node=selector=>{if(!nodes.has(selector))nodes.set(selector,{dataset:{},listeners:{},addEventListener(name,listener){this.listeners[name]=listener},setAttribute(name,value){this[name]=value}});return nodes.get(selector)},stage=node('#heart-choices');
- Object.assign(stage,{style:{removeProperty(){}},slides:[],animate(){},getBoundingClientRect:()=>({width:402}),querySelectorAll(){return this.slides}});Object.defineProperty(stage,'innerHTML',{set(value){this.slides=[...value.matchAll(/class="choice-slide is-(\w+)" data-card="([\w-]+)"/g)].map(([,position,id])=>({dataset:{card:id},classList:{contains:name=>name==='is-'+position},getBoundingClientRect:()=>({left:position==='current'?87:position==='previous'?-110:322,top:position==='current'?0:41,width:position==='current'?228:190}),animate(){}}))}});
- const context={CARDS,earnedCardIds,normalizeSession,mergeSession,escapeHTML,ads:ids.map(id=>({id})),session:{...legacy,currentCard:'curiosity'},$:node,view:'choose',pendingChoice:null,reduced:()=>false,refreshVoteCounts(){},positionMailScene(){},getComputedStyle:slide=>({opacity:slide.classList.contains('is-current')?'1':'.5',transform:slide.classList.contains('is-current')?'matrix(1,0,0,1,-114,0)':'none'}),availableCards(){return CARDS.filter(card=>earnedCardIds(context.session,ids).includes(card.id))}};
- const browserSource=source.slice(source.lastIndexOf("if(typeof document!=='undefined'){"));require('node:vm').runInNewContext(browserSource.slice(browserSource.indexOf(' function save('),browserSource.indexOf(' function currentAd('))+browserSource.slice(browserSource.indexOf(' function updateChoiceCarousel('),browserSource.indexOf(' function renderChoices('))+browserSource.slice(browserSource.indexOf(' function chooseCard('),browserSource.indexOf(" $('#make-cards').addEventListener")),context);context.updateChoiceCarousel();
- for(const expected of ['resonance','imagination','passion','curiosity']){node('#choice-next').listeners.click();assert.equal(context.session.currentCard,expected);assert.equal(stage.slides.find(slide=>slide.classList.contains('is-current')).dataset.card,expected);assert.ok(node('#make-cards').innerHTML.includes(CARDS.find(card=>card.id===expected).name))}
- for(const count of [2,3,4]){context.session=normalizeSession({...legacy,votes:ids.slice(0,count).map(id=>({id})),currentCard:CARDS[0].id},ids);context.updateChoiceCarousel();for(let step=1;step<=count*2;step++){node('#choice-next').listeners.click();assert.equal(context.session.currentCard,CARDS[step%count].id);assert.equal(stage.slides.length,5)}}
- console.log('PASS: WeChat/browser host bootstrap, 2/3/4-card looping, 16 earned subsets, legacy migration, collection/merge/reset, safe downloads, and actual next-choice handler through visit state, carousel DOM, CTA, and FLIP rendering.');
+ // A loop may recycle only offscreen nodes; visible positions stay continuous.
+ for(const count of [2,3,4]){const size=count*3;for(let position=count;position<count*3;position+=.125){
+  const visible=p=>Array.from({length:size},(_,slot)=>({id:slot%count,x:wheelOffset(slot,p,size)})).filter(item=>Math.abs(item.x)<2).sort((a,b)=>a.x-b.x).map(item=>[item.id,Math.round(item.x*1000)]);
+  assert.deepEqual(visible(position),visible(position+count));
+  for(let slot=0;slot<size;slot++){const before=wheelOffset(slot,position,size),after=wheelOffset(slot,position+.01,size);if(Math.abs(before)<2&&Math.abs(after)<2)assert.ok(Math.abs(after-before+.01)<1e-8)}
+ }}
+ console.log('PASS: WeChat/browser host bootstrap, continuous 2/3/4-card wheel seams, 16 earned subsets, collection/reset and safe downloads.');
 }
 if(typeof document!=='undefined'){
  const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
  const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
  let ads=normalizeAds(null),session=normalizeSession(null,ads.map(ad=>ad.id)),view='landing',displayedIndex=0,displayedCard=CARDS[0].id,history=[],motionTimer,entryTimer,toastTimer,pendingFlightId=null,pendingChoice=null,manifestReady=false,downloading=false;
  const failedCards=new Set();
- let adCarouselBusy=false,adCarouselTimer,adTransitionCleanup=null,adPointer=null,adDragOffset=0,adSlideToken=0,entryFinished=false;
+ let adCarouselBusy=false,adPointer=null,adPosition=0,adTarget=0,adLiveSlot=0,adFrame=0,adMotion=null,adGeometry=null,adPreviews=[],adPreviewSignature='',adHandingOff=false,adHandoffToken=0,entryFinished=false;
  const coverAssets={'cover-annual-a-v16':'annual','cover-awards-a-v16':'awards','cover-top-a-v16':'top'},balloonColors={G:'#c5efd5',R:'#f2cdd6',P:'#dcd2f1',O:'#f5dec2'},balloonSource=id=>globalThis.BALLOON_ASSETS?.[id]||(coverAssets[id]?'assets/cover-a-v16/'+coverAssets[id]+'.png':'assets/balloons/'+id+'.png');
  const letterCardSource=id=>globalThis.LETTER_CARD_ASSETS?.[id]||'assets/letters-v32/'+id+'-paper.svg';
  const letterBlessings=Object.fromEntries(CARDS.map(card=>[card.id,card.blessing])),letterPreloads=new Map();
@@ -207,7 +208,7 @@ if(typeof document!=='undefined'){
  function currentAd(){return ads[session.index]}
  function currentVote(){return session.votes.find(vote=>vote.id===currentAd().id)}
  function closeAllDialogs(){$$('dialog[open]').forEach(dialog=>dialog.close());document.body.style.overflow=''}
- function stopMotion({keepLetters=false}={}){cancelAdCarousel();clearTimeout(entryTimer);clearTimeout(motionTimer);pendingFlightId=null;pendingChoice=null;$('#mail-flow').classList.remove('letter-is-switching');$('#card-view').classList.remove('card-return');$('#vote-flight').hidden=true;$('#vote-flight').classList.remove('active');$('#vote-scene').classList.remove('vote-is-flying');$('#ad-carousel').classList.remove('vote-feedback-active');if(!keepLetters){$('#mail-flow')?.classList.remove('letter-is-unsealing');const letters=$('#heart-choices');letters.classList.remove('letter-in-flight');delete letters.dataset.opening;$$('.heart-choice.opening,.heart-choice.letter-sending').forEach(el=>el.classList.remove('opening','letter-sending'));if(view==='choose')updateChoiceCarousel();if(view==='card'&&availableCards().length){$('#card-view').classList.remove('card-reveal');updateCardPosition()}}$('#vote-button').disabled=false}
+ function stopMotion({keepLetters=false}={}){cancelChoiceMotion();cancelAdCarousel();clearTimeout(entryTimer);clearTimeout(motionTimer);pendingFlightId=null;pendingChoice=null;$('#mail-flow').classList.remove('letter-is-switching');$('#card-view').classList.remove('card-return');$('#vote-flight').hidden=true;$('#vote-flight').classList.remove('active');$('#vote-scene').classList.remove('vote-is-flying');$('#ad-carousel').classList.remove('vote-feedback-active');if(!keepLetters){$('#mail-flow')?.classList.remove('letter-is-unsealing');const letters=$('#heart-choices');letters.classList.remove('letter-in-flight');delete letters.dataset.opening;$$('.heart-choice.opening,.heart-choice.letter-sending').forEach(el=>el.classList.remove('opening','letter-sending'));if(view==='choose')updateChoiceCarousel();if(view==='card'&&availableCards().length){$('#card-view').classList.remove('card-reveal');updateCardPosition()}}$('#vote-button').disabled=false}
  function show(next,{replace=false}={}){
   if(next!=='landing'&&!manifestReady)return;
   if(next==='card'&&!availableCards().length)next='choose';
@@ -262,89 +263,128 @@ if(typeof document!=='undefined'){
  function renderAd(){
   const ad=currentAd(),vote=currentVote();paintAdModule($('#vote-scene .moment-ad'),ad,true);const wrap=$('#vote-scene .ad-image-wrap');$('#ad-index').textContent=String(session.index+1).padStart(2,'0');$('#ad-title').textContent=ad.title;$('#ad-votes').innerHTML=ad.votes===null?'喜欢，由你来决定':`<span>╲ 参考票数 <b>${ad.votes.toLocaleString('zh-CN')}</b> ╱</span><small class="votes-snapshot">${escapeHTML(ad.votesLabel||'录屏票数快照')}</small>`;
 
-  $('.moment-ad').classList.toggle('captured-ad',!!ad.capture);wrap.classList.toggle('capture-media',!!ad.capture);wrap.style.cssText=captureStyle(moduleCapture(ad));$('#ad-image').hidden=!ad.image;$('#ad-image-placeholder').hidden=!!ad.image;
+  $('#vote-scene .moment-ad').classList.toggle('captured-ad',!!ad.capture);wrap.classList.toggle('capture-media',!!ad.capture);wrap.style.cssText=captureStyle(moduleCapture(ad));$('#ad-image').hidden=!ad.image;$('#ad-image-placeholder').hidden=!!ad.image;
   if(ad.image){const adId=ad.id;$('#ad-image').onerror=()=>{if(currentAd().id===adId){$('#ad-image').hidden=true;$('#ad-image-placeholder').hidden=false}};$('#ad-image').onload=()=>{if(currentAd().id===adId)$('#ad-image-placeholder').hidden=true};$('#ad-image').src=ad.image;$('#ad-image').alt=ad.title}
-  $('#ad-caption').textContent=adModules[ad.id]?.caption||ad.caption;$('.ad-card-bottom>span').textContent=sourceSummary(ad)||'广告';$('#ad-source').hidden=!ad.sourceUrl;prepareFlight();$('#vote-button').hidden=!!vote;$('#vote-button').disabled=!!pendingFlightId;$('#already-voted').hidden=!vote;$('#vote-brand-label').textContent=ad.brand.split(/\s/).slice(-1)[0]||'';
+  $('#ad-caption').textContent=adModules[ad.id]?.caption||ad.caption;$('#vote-scene .ad-card-bottom>span').textContent=sourceSummary(ad)||'广告';$('#ad-source').hidden=!ad.sourceUrl;prepareFlight();$('#vote-button').hidden=!!vote;$('#vote-button').disabled=!!pendingFlightId;$('#already-voted').hidden=!vote;$('#vote-brand-label').textContent=ad.brand.split(/\s/).slice(-1)[0]||'';
   $('.vote-progress').innerHTML='已投 <b class="vote-count">'+session.votes.length+'</b> / 10 票';$('#next-step').textContent=session.votes.length?'下一步':'快去投票';$('#next-step').disabled=!session.votes.length||!!pendingFlightId;$('#previous-ad').disabled=ads.length<2||!!pendingFlightId;$('#next-ad').disabled=ads.length<2||!!pendingFlightId;refreshVoteCounts();if(!adCarouselBusy)syncAdNeighbors();
  }
- function carouselStep(){return $('#vote-scene').getBoundingClientRect().width+$('#vote-view').clientWidth/402*24}
+ function carouselStep(){return $('#ad-carousel').getBoundingClientRect().width+$('#vote-view').clientWidth/402*24}
  function cloneAdScene(index){
   const ad=ads[index],copy=$('#vote-scene').cloneNode(true);copy.querySelector('#vote-flight')?.remove();
   for(const el of [copy,...copy.querySelectorAll('[id]')])el.removeAttribute('id');
-  copy.className='ad-carousel-slide';copy.setAttribute('aria-hidden','true');copy.inert=true;copy.dataset.previewIndex=String(index);
-  copy.querySelectorAll('[tabindex]').forEach(el=>el.removeAttribute('tabindex'));copy.querySelectorAll('button,a').forEach(el=>el.tabIndex=-1);
-  const moment=copy.querySelector('.moment-ad');paintAdModule(moment,ad);
-
-  const hasVote=session.votes.some(vote=>vote.id===ad.id);copy.querySelector('.heart-vote').hidden=hasVote;copy.querySelector('.heart-vote').disabled=false;copy.querySelector('.already-voted').hidden=!hasVote;copy.querySelector('.vote-button-copy small').textContent=ad.brand.split(/\s/).slice(-1)[0]||'';
-  styleVoteHeart(copy.querySelector('.heart-vote'),index);
-  styleVoteHeart(copy.querySelector('.already-voted'),index);
-  return copy;
+  copy.className='ad-carousel-slide';copy.style.cssText='';copy.setAttribute('aria-hidden','true');copy.inert=true;copy.dataset.previewIndex=String(index);
+  copy.querySelectorAll('[tabindex]').forEach(el=>el.removeAttribute('tabindex'));copy.querySelectorAll('button,a').forEach(el=>el.tabIndex=-1);paintAdModule(copy.querySelector('.moment-ad'),ad);
+  copy.querySelector('.vote-button-copy small').textContent=ad.brand.split(/\s/).slice(-1)[0]||'';styleVoteHeart(copy.querySelector('.heart-vote'),index);styleVoteHeart(copy.querySelector('.already-voted'),index);return copy;
  }
- function placeAdSlide(slide,offset){
-  const step=carouselStep(),angle=offset/step*5.85,radius=step/Math.sin(5.85*Math.PI/180);
-  // Rotation around one shared point below the screen traces a true circular arc.
-  slide.style.transformOrigin=`50% ${radius}px`;slide.style.transform=`rotateZ(${angle}deg)`;
+ function setAdBusy(busy){
+  adCarouselBusy=busy;$('#ad-carousel').classList.toggle('is-switching',busy);$('#vote-scene').style.pointerEvents=busy?'none':'';$('#vote-button').disabled=busy||!!pendingFlightId;
+  $('#previous-ad').disabled=ads.length<2||!!pendingFlightId;$('#next-ad').disabled=ads.length<2||!!pendingFlightId;$('#next-step').disabled=busy||!session.votes.length||!!pendingFlightId;
  }
  function syncAdNeighbors(){
-  const carousel=$('#ad-carousel');if(!carousel||adCarouselBusy)return;carousel.querySelectorAll('.ad-carousel-slide').forEach(el=>el.remove());
-  for(const direction of [-1,1]){const index=(session.index+direction+ads.length)%ads.length;if(ads.length<2)continue;const copy=cloneAdScene(index);copy.dataset.direction=String(direction);carousel.append(copy);placeAdSlide(copy,direction*carouselStep())}
+  const carousel=$('#ad-carousel'),signature=ads.map(ad=>ad.id).join('|');
+  if(signature!==adPreviewSignature){adPreviews.forEach(el=>el.remove());adPreviews=Array.from({length:ads.length*3},(_,slot)=>{const copy=cloneAdScene(slot%ads.length);copy.dataset.slot=String(slot);carousel.append(copy);return copy});adPreviewSignature=signature;adPosition=adTarget=adLiveSlot=ads.length+session.index}
+  const step=carouselStep();adGeometry={step,radius:step/Math.sin(5.85*Math.PI/180)};
+  for(const copy of adPreviews){const hasVote=session.votes.some(vote=>vote.id===ads[Number(copy.dataset.previewIndex)].id);copy.querySelector('.heart-vote').hidden=hasVote;copy.querySelector('.already-voted').hidden=!hasVote}
+  paintAdWheel();
+ }
+ function paintAdWheel(){
+  if(!adGeometry||!adPreviews.length)return;const size=adPreviews.length,live=((adLiveSlot%size)+size)%size,origin=`50% ${adGeometry.radius}px`;
+  for(let slot=0;slot<size;slot++){const slide=adPreviews[slot],relative=wheelOffset(slot,adPosition,size);slide.style.transformOrigin=origin;slide.style.transform=`rotateZ(${relative*5.85}deg)`;slide.style.visibility=Math.abs(relative)<2.25&&(adHandingOff||slot!==live)?'visible':'hidden';slide.style.zIndex=String(Math.round(30-Math.abs(relative)*5))}
+  const scene=$('#vote-scene'),relative=wheelOffset(adLiveSlot,adPosition,size);scene.style.transformOrigin=origin;scene.style.transform=`rotateZ(${relative*5.85}deg)`;scene.style.visibility=adHandingOff||Math.abs(relative)>2.25?'hidden':'visible';scene.style.zIndex=String(Math.round(30-Math.abs(relative)*5));
+  $('.vote-heading').style.opacity=String(1-Math.min(.7,Math.abs(adPosition-Math.round(adPosition))*.9));
  }
  function cancelAdCarousel(){
-  adSlideToken++;clearTimeout(adCarouselTimer);if(adTransitionCleanup){adTransitionCleanup();adTransitionCleanup=null}adCarouselBusy=false;adPointer=null;adDragOffset=0;
-  const carousel=$('#ad-carousel'),scene=$('#vote-scene');if(!carousel||!scene)return;carousel.classList.remove('is-dragging','is-switching');carousel.querySelectorAll('.ad-carousel-slide').forEach(el=>el.remove());carousel.style.removeProperty('min-height');scene.style.removeProperty('transform');scene.style.removeProperty('transition');scene.style.removeProperty('pointer-events');
-  const heading=$('.vote-heading');heading.style.removeProperty('opacity');heading.style.removeProperty('transition');if(view==='vote'&&manifestReady){$('#previous-ad').disabled=ads.length<2||!!pendingFlightId;$('#next-ad').disabled=ads.length<2||!!pendingFlightId;$('#next-step').disabled=!session.votes.length||!!pendingFlightId}
+  cancelAnimationFrame(adFrame);adFrame=0;adMotion=null;adPointer=null;adHandingOff=false;adHandoffToken++;adPosition=adTarget=adLiveSlot=ads.length+session.index;
+  $('#ad-carousel').classList.remove('is-dragging');setAdBusy(false);paintAdWheel();
  }
- function finishAdSlide(token){if(token!==adSlideToken)return;cancelAdCarousel();if(view==='vote')renderAd()}
- function paintAdDrag(offset){
-  adDragOffset=offset;const scene=$('#vote-scene');placeAdSlide(scene,offset);$('#ad-carousel').querySelectorAll('.ad-carousel-slide').forEach(slide=>placeAdSlide(slide,Number(slide.dataset.direction)*carouselStep()+offset));$('.vote-heading').style.opacity=String(1-Math.min(.7,Math.abs(offset)/carouselStep()*.8));
+ function requestAdPaint(){if(!adFrame)adFrame=requestAnimationFrame(paintAdFrame)}
+ function paintAdFrame(time){
+  adFrame=0;if(adMotion){const progress=Math.min(1,(time-adMotion.start)/adMotion.duration);adPosition=adMotion.from+(adMotion.to-adMotion.from)*(1-Math.pow(1-progress,3));if(progress===1){adPosition=adMotion.to;adMotion=null;commitAdWheel();return}}
+  paintAdWheel();if(adMotion)requestAdPaint();
  }
- function settleAdDrag(){
-  if(!adDragOffset){adPointer=null;return}adCarouselBusy=true;const token=++adSlideToken,scene=$('#vote-scene'),carousel=$('#ad-carousel'),duration=reduced()?0:260;carousel.classList.remove('is-dragging');carousel.classList.add('is-switching');
-  for(const el of [scene,...carousel.querySelectorAll('.ad-carousel-slide')])el.style.transition=`transform ${duration}ms cubic-bezier(.2,.7,.25,1)`;
-  $('.vote-heading').style.transition=`opacity ${duration}ms ease`;requestAnimationFrame(()=>{if(token!==adSlideToken)return;paintAdDrag(0);$('.vote-heading').style.opacity='1'});adCarouselTimer=setTimeout(()=>finishAdSlide(token),duration+35);
+ function commitAdWheel(){
+  if(view!=='vote')return;adLiveSlot=Math.round(adTarget);session.index=((adLiveSlot%ads.length)+ads.length)%ads.length;displayedIndex=session.index;save();
+  // Hold the already-decoded preview at center until the interactive module is ready.
+  adHandingOff=true;const token=++adHandoffToken;renderAd();setAdBusy(true);syncAdNeighbors();
+  Promise.all([...$('#vote-scene .moment-ad').querySelectorAll('img')].map(img=>img.decode().catch(()=>null))).then(()=>requestAnimationFrame(()=>{if(token!==adHandoffToken||view!=='vote')return;adHandingOff=false;setAdBusy(!!adMotion||!!adPointer?.dragging);paintAdWheel()}));
  }
- function moveAd(direction){
-  if(!manifestReady||view!=='vote'||pendingFlightId||adCarouselBusy)return;const index=(session.index+direction+ads.length)%ads.length;
-  if(ads.length<2){settleAdDrag();return}
-  if(reduced()){cancelAdCarousel();session.index=index;displayedIndex=index;save();renderAd();return}
-  $('#vote-view').classList.remove('vote-entry');const scene=$('#vote-scene'),carousel=$('#ad-carousel'),offset=adDragOffset,step=carouselStep(),outgoing=cloneAdScene(session.index),token=++adSlideToken;
-  adCarouselBusy=true;adPointer=null;carousel.classList.remove('is-dragging');carousel.classList.add('is-switching');carousel.style.minHeight=scene.offsetHeight+'px';carousel.querySelectorAll('.ad-carousel-slide').forEach(el=>el.remove());outgoing.classList.add('ad-outgoing');carousel.append(outgoing);placeAdSlide(outgoing,offset);
-  session.index=index;displayedIndex=index;save();renderAd();scene.style.transition='none';scene.style.pointerEvents='none';placeAdSlide(scene,direction*step+offset);$('.vote-heading').style.opacity='.15';$('#previous-ad').disabled=true;$('#next-ad').disabled=true;$('#next-step').disabled=true;
-  const duration=Math.max(220,Math.round(420*(1-Math.min(Math.abs(offset)/step,.65))));
-  const end=event=>{if(event.target===scene&&event.propertyName==='transform')finishAdSlide(token)};scene.addEventListener('transitionend',end);adTransitionCleanup=()=>scene.removeEventListener('transitionend',end);
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{if(token!==adSlideToken||view!=='vote')return;scene.style.transition=`transform ${duration}ms cubic-bezier(.2,.7,.25,1)`;outgoing.style.transition=scene.style.transition;$('.vote-heading').style.transition=`opacity ${Math.min(duration,210)}ms ease`;placeAdSlide(scene,0);placeAdSlide(outgoing,-direction*step);$('.vote-heading').style.opacity='1'}));
-  adCarouselTimer=setTimeout(()=>finishAdSlide(token),duration+100);
+ function animateAdWheel(target){
+  cancelAnimationFrame(adFrame);adFrame=0;adTarget=target;$('#vote-view').classList.remove('vote-entry');$('#ad-carousel').classList.remove('is-dragging');
+  if(reduced()||Math.abs(target-adPosition)<.001){adPosition=target;adMotion=null;if(session.index!==((target%ads.length)+ads.length)%ads.length)commitAdWheel();else{setAdBusy(adHandingOff);paintAdWheel()}return}
+  setAdBusy(true);adMotion={from:adPosition,to:target,start:performance.now(),duration:Math.min(560,230+Math.abs(target-adPosition)*160)};requestAdPaint();
  }
+ function moveAd(direction){if(!manifestReady||view!=='vote'||pendingFlightId||ads.length<2)return;adPointer=null;animateAdWheel(Math.round(adTarget)+direction)}
  function bindAdDrag(){
   const carousel=$('#ad-carousel');carousel.addEventListener('dragstart',event=>event.preventDefault());
-  carousel.addEventListener('pointerdown',event=>{if(view!=='vote'||!manifestReady||pendingFlightId||adCarouselBusy||event.target.closest('button,a'))return;adPointer={id:event.pointerId,x:event.clientX,y:event.clientY,time:performance.now(),dragging:false};adDragOffset=0});
-  carousel.addEventListener('pointermove',event=>{if(!adPointer||adPointer.id!==event.pointerId)return;const dx=event.clientX-adPointer.x,dy=event.clientY-adPointer.y;if(!adPointer.dragging){if(Math.abs(dy)>9&&Math.abs(dy)>Math.abs(dx)*1.15){adPointer=null;return}if(Math.abs(dx)<8||Math.abs(dx)<Math.abs(dy)*1.15)return;adPointer.dragging=true;carousel.classList.add('is-dragging');try{carousel.setPointerCapture(event.pointerId)}catch{}}
-   if(event.cancelable)event.preventDefault();let offset=dx;paintAdDrag(Math.max(-carouselStep()*.94,Math.min(carouselStep()*.94,offset)));
+  carousel.addEventListener('pointerdown',event=>{if(view!=='vote'||!manifestReady||pendingFlightId||event.target.closest('button,a'))return;cancelAnimationFrame(adFrame);adFrame=0;adMotion=null;adPointer={id:event.pointerId,x:event.clientX,y:event.clientY,position:adPosition,lastX:event.clientX,time:performance.now(),velocity:0,dragging:false}});
+  carousel.addEventListener('pointermove',event=>{
+   if(!adPointer||adPointer.id!==event.pointerId)return;const dx=event.clientX-adPointer.x,dy=event.clientY-adPointer.y;
+   if(!adPointer.dragging){if(Math.abs(dy)>9&&Math.abs(dy)>Math.abs(dx)*1.15){adPointer=null;animateAdWheel(adTarget);return}if(Math.abs(dx)<8||Math.abs(dx)<Math.abs(dy)*1.15)return;adPointer.dragging=true;setAdBusy(true);carousel.classList.add('is-dragging');try{carousel.setPointerCapture(event.pointerId)}catch{}}
+   if(event.cancelable)event.preventDefault();const now=performance.now(),elapsed=now-adPointer.time;if(elapsed>0)adPointer.velocity=adPointer.velocity*.45+(event.clientX-adPointer.lastX)/elapsed*.55;adPointer.lastX=event.clientX;adPointer.time=now;adPosition=adPointer.position-dx/adGeometry.step;requestAdPaint();
   });
-  function release(event,cancelled=false){if(!adPointer||adPointer.id!==event.pointerId)return;const drag=adPointer,offset=adDragOffset;adPointer=null;if(!drag.dragging)return;try{carousel.releasePointerCapture(event.pointerId)}catch{}const distance=Math.abs(offset),quick=performance.now()-drag.time<300&&distance>27;if(!cancelled&&(distance>Math.min(76,carouselStep()*.2)||quick)){moveAd(offset<0?1:-1)}else settleAdDrag()}
+  function release(event,cancelled=false){
+   if(!adPointer||adPointer.id!==event.pointerId)return;const pointer=adPointer;adPointer=null;if(!pointer.dragging){animateAdWheel(adTarget);return}try{carousel.releasePointerCapture(event.pointerId)}catch{}
+   const velocity=cancelled||performance.now()-pointer.time>100?0:pointer.velocity,momentum=Math.max(-.65,Math.min(.65,-velocity*150/adGeometry.step));let target=Math.round(adPosition+momentum);const distance=adPosition-pointer.position;if(!cancelled&&Math.abs(distance)>.2&&target===Math.round(pointer.position))target+=Math.sign(distance);animateAdWheel(target);
+  }
   carousel.addEventListener('pointerup',event=>release(event));carousel.addEventListener('pointercancel',event=>release(event,true));
  }
  bindAdDrag();
- $('#previous-ad').addEventListener('click',()=>moveAd(-1));$('#next-ad').addEventListener('click',()=>moveAd(1));$('#next-step').addEventListener('click',()=>{if(!pendingFlightId)show('choose')});$('#ad-source').addEventListener('click',()=>{if(currentAd().sourceUrl)window.open(currentAd().sourceUrl,'_blank','noopener,noreferrer')});
+ $('#previous-ad').addEventListener('click',()=>moveAd(-1));$('#next-ad').addEventListener('click',()=>moveAd(1));$('#next-step').addEventListener('click',()=>{if(!pendingFlightId&&!adCarouselBusy)show('choose')});$('#ad-source').addEventListener('click',()=>{if(currentAd().sourceUrl)window.open(currentAd().sourceUrl,'_blank','noopener,noreferrer')});
  function bindSwipe(element,move,enabled=()=>true,includeButtons=false){let start=null;element.addEventListener('pointerdown',event=>{if(!enabled()||(!includeButtons&&event.target.closest('button,a')))return;start={x:event.clientX,y:event.clientY,id:event.pointerId}});element.addEventListener('pointerup',event=>{if(!start||start.id!==event.pointerId)return;const dx=event.clientX-start.x,dy=event.clientY-start.y;start=null;if(enabled()&&Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy)*1.5){if(includeButtons){const suppress=event=>{event.preventDefault();event.stopPropagation()};element.addEventListener('click',suppress,{once:true,capture:true});setTimeout(()=>element.removeEventListener('click',suppress,true),300)}move(dx<0?1:-1)}});element.addEventListener('pointercancel',()=>start=null)}
  bindSwipe($('#card-carousel'),moveCard,()=>view==='card');
- const choiceStage=$('#heart-choices');let choicePointer=null,choiceDrag=0;
- choiceStage.addEventListener('pointerdown',event=>{if(view!=='choose'||pendingChoice||availableCards().length<2)return;choicePointer={id:event.pointerId,x:event.clientX,y:event.clientY,dragging:false};choiceDrag=0});
+ const choiceStage=$('#heart-choices');
+ let choiceCards=[],choiceNodes=[],choiceSignature='',choicePosition=0,choiceTarget=0,choiceFrame=0,choiceMotion=null,choicePointer=null,choiceGeometry=null,choiceVisualCenter=null;
+ function cancelChoiceMotion(){cancelAnimationFrame(choiceFrame);choiceFrame=0;choiceMotion=null;choicePointer=null}
+ function requestChoicePaint(){if(!choiceFrame)choiceFrame=requestAnimationFrame(paintChoiceFrame)}
+ function paintChoiceFrame(time){
+  choiceFrame=0;
+  if(choiceMotion){const progress=Math.min(1,(time-choiceMotion.start)/choiceMotion.duration);choicePosition=choiceMotion.from+(choiceMotion.to-choiceMotion.from)*(1-Math.pow(1-progress,3));if(progress===1){choicePosition=choiceMotion.to;choiceMotion=null}}
+  paintChoiceWheel();if(choiceMotion)requestChoicePaint();
+ }
+ function paintChoiceWheel(){
+  if(!choiceNodes.length||!choiceGeometry)return;const {center,step,width,rise}=choiceGeometry,size=choiceNodes.length,nearest=((Math.round(choicePosition)%size)+size)%size,opening=!!choiceStage.dataset.opening,changeCenter=choiceVisualCenter!==nearest;
+  for(let slot=0;slot<size;slot++){
+   const node=choiceNodes[slot],relative=wheelOffset(slot,choicePosition,size),distance=Math.abs(relative),visible=distance<2.15;
+   node.style.visibility=visible?'visible':'hidden';
+   if(visible){const depth=Math.min(distance,1),scale=1-depth/6;node.style.transform=`translate3d(${center+step*relative-width/2}px,${rise*depth}px,0) scale(${scale})`;node.style.opacity=String(1-depth*.5);node.style.zIndex=String(Math.round(30-distance*5))}
+   node.disabled=opening;
+   if(changeCenter){const offset=wheelOffset(slot,Math.round(choicePosition),size),active=offset===0;node.classList.toggle('is-current',active);node.classList.toggle('is-previous',offset===-1);node.classList.toggle('is-next',offset===1);node.dataset.offset=String(offset);node.inert=Math.abs(offset)>1;node.setAttribute('aria-hidden',String(Math.abs(offset)>1));node.setAttribute('aria-current',String(active));node.setAttribute('aria-label',(active?'打开':'切换到')+choiceCards[slot%choiceCards.length].name+'心意卡')}
+  }
+  choiceVisualCenter=nearest;
+ }
+ function refreshChoiceUI(){
+  const card=choiceCards.find(card=>card.id===session.currentCard),opening=!!choiceStage.dataset.opening;
+  $('#choice-vote-count').textContent=session.votes.length;$('#choice-description').textContent=card?.description||'先为喜欢的好创意投票，收获一份心意。';$('#choose-vote-summary').textContent='本次投票获得 '+choiceCards.length+' 份心意';
+  $('#make-cards').disabled=opening||!card;$('#make-cards').innerHTML=opening?'心意来信，正在展开…':card?'带走「'+card.name+'」心意卡 <span aria-hidden="true">→</span>':'先去投票，收获心意';
+  $('#choice-previous').disabled=opening||choiceCards.length<2;$('#choice-next').disabled=opening||choiceCards.length<2;choiceStage.setAttribute('aria-label','本次投票获得'+choiceCards.length+'份心意，左右滑动选择');
+ }
+ function animateChoiceWheel(target){
+  cancelAnimationFrame(choiceFrame);choiceFrame=0;choiceTarget=target;
+  const count=choiceCards.length;if(!count)return;session.currentCard=choiceCards[((Math.round(target)%count)+count)%count].id;save();refreshChoiceUI();
+  if(reduced()||Math.abs(target-choicePosition)<.001){choicePosition=target;choiceMotion=null;paintChoiceWheel();return}
+  choiceMotion={from:choicePosition,to:target,start:performance.now(),duration:Math.min(560,220+Math.abs(target-choicePosition)*160)};requestChoicePaint();
+ }
+ choiceStage.addEventListener('pointerdown',event=>{
+  if(view!=='choose'||pendingChoice||choiceCards.length<2)return;cancelAnimationFrame(choiceFrame);choiceFrame=0;choiceMotion=null;
+  choicePointer={id:event.pointerId,x:event.clientX,y:event.clientY,position:choicePosition,lastX:event.clientX,time:performance.now(),velocity:0,dragging:false};
+ });
  choiceStage.addEventListener('pointermove',event=>{
   if(!choicePointer||choicePointer.id!==event.pointerId)return;const dx=event.clientX-choicePointer.x,dy=event.clientY-choicePointer.y;
-  if(!choicePointer.dragging){if(Math.abs(dy)>9&&Math.abs(dy)>Math.abs(dx)*1.15){choicePointer=null;return}if(Math.abs(dx)<7||Math.abs(dx)<Math.abs(dy)*1.15)return;choicePointer.dragging=true;try{choiceStage.setPointerCapture(event.pointerId)}catch{}}
-  if(event.cancelable)event.preventDefault();const limit=choiceStage.clientWidth*.75;choiceDrag=Math.max(-limit,Math.min(limit,dx));choiceStage.style.setProperty('--choice-drag',choiceDrag+'px');
+  if(!choicePointer.dragging){if(Math.abs(dy)>9&&Math.abs(dy)>Math.abs(dx)*1.15){choicePointer=null;animateChoiceWheel(choiceTarget);return}if(Math.abs(dx)<7||Math.abs(dx)<Math.abs(dy)*1.15)return;choicePointer.dragging=true;$('#choose-view').classList.remove('choice-enter');$('#make-cards').disabled=true;try{choiceStage.setPointerCapture(event.pointerId)}catch{}}
+  if(event.cancelable)event.preventDefault();const now=performance.now(),elapsed=now-choicePointer.time;if(elapsed>0)choicePointer.velocity=choicePointer.velocity*.45+(event.clientX-choicePointer.lastX)/elapsed*.55;choicePointer.lastX=event.clientX;choicePointer.time=now;
+  choicePosition=choicePointer.position-dx/choiceGeometry.step;requestChoicePaint();
  });
  function releaseChoiceDrag(event,cancelled=false){
-  if(!choicePointer||choicePointer.id!==event.pointerId)return;const moved=choicePointer.dragging,offset=choiceDrag;choicePointer=null;if(!moved)return;try{choiceStage.releasePointerCapture(event.pointerId)}catch{}
+  if(!choicePointer||choicePointer.id!==event.pointerId)return;const pointer=choicePointer;choicePointer=null;
+  if(!pointer.dragging){if(view==='choose')animateChoiceWheel(choiceTarget);return}try{choiceStage.releasePointerCapture(event.pointerId)}catch{}
   const suppress=event=>{event.preventDefault();event.stopPropagation()};choiceStage.addEventListener('click',suppress,{once:true,capture:true});setTimeout(()=>choiceStage.removeEventListener('click',suppress,true),300);
-  if(view!=='choose'||pendingChoice){choiceStage.style.removeProperty('--choice-drag');return}
-  if(!cancelled&&Math.abs(offset)>Math.min(45,choiceStage.clientWidth*.12))moveChoice(offset<0?1:-1);else updateChoiceCarousel({animate:true});
+  if(view!=='choose'||pendingChoice)return;
+  const velocity=cancelled||performance.now()-pointer.time>100?0:pointer.velocity,momentum=Math.max(-.65,Math.min(.65,-velocity*180/choiceGeometry.step));let target=Math.round(choicePosition+momentum);const distance=choicePosition-pointer.position;if(!cancelled&&Math.abs(distance)>.25&&target===Math.round(pointer.position))target+=Math.sign(distance);animateChoiceWheel(target);
  }
  choiceStage.addEventListener('pointerup',event=>releaseChoiceDrag(event));choiceStage.addEventListener('pointercancel',event=>releaseChoiceDrag(event,true));
  $('#heart-choices').addEventListener('dragstart',event=>event.preventDefault());
  window.addEventListener('keydown',event=>{if($('dialog[open]')||pendingFlightId||pendingChoice)return;if(event.key==='ArrowRight'||event.key==='ArrowLeft'){const direction=event.key==='ArrowRight'?1:-1;if(view==='vote'){event.preventDefault();moveAd(direction)}else if(view==='choose'){event.preventDefault();$('#choose-view').classList.remove('choice-enter');moveChoice(direction)}else if(view==='card'){event.preventDefault();moveCard(direction)}}});
- $('#vote-button').addEventListener('click',()=>{if(!manifestReady||view!=='vote'||currentVote()||pendingFlightId||session.votes.length>=MAX_VOTES)return;const adId=currentAd().id;session.votes.push({id:adId});save();if(!session.votes.some(vote=>vote.id===adId)){renderAd();return}if(reduced()){renderAd();return}launchFlight()});
+ $('#vote-button').addEventListener('click',()=>{if(!manifestReady||view!=='vote'||adCarouselBusy||currentVote()||pendingFlightId||session.votes.length>=MAX_VOTES)return;const adId=currentAd().id;session.votes.push({id:adId});save();if(!session.votes.some(vote=>vote.id===adId)){renderAd();return}if(reduced()){renderAd();return}launchFlight()});
  function availableCards(){const earned=earnedCardIds(session,ads.map(ad=>ad.id));return CARDS.filter(card=>earned.includes(card.id))}
  function votedBrandNames(){return [...new Set(session.votes.map(vote=>ads.find(ad=>ad.id===vote.id)?.brand).filter(Boolean).map(name=>name.match(/[\u3400-\u9fff][\u3400-\u9fff·-]*/g)?.join('')||name))]}
  function positionMailScene(){
@@ -354,39 +394,38 @@ if(typeof document!=='undefined'){
   const envelopeY=frameY+frameWidth*.83,envelopeHeight=frameWidth*.70,paperY=frameY;
   for(const [key,value] of Object.entries({'--mailbox-x':frameX+frameWidth*.5,'--mailbox-y':envelopeY,'--mailbox-width':frameWidth*.9,'--mailbox-height':envelopeHeight,'--letter-paper-x':frameX,'--letter-paper-y':paperY,'--letter-paper-width':frameWidth,'--letter-paper-height':frameWidth*1.6,'--letter-emerge-distance':envelopeY+envelopeHeight*.40-paperY,'--letter-actions-y':frameY+frameWidth*1.6+10*u,'--letter-frame-x':frameX,'--letter-frame-y':frameY,'--letter-frame-width':frameWidth}))flow.style.setProperty(key,value+'px');
  }
- function updateChoiceCarousel({animate=false,direction=0}={}){
-  const cards=availableCards(),stage=$('#heart-choices'),opening=!!stage.dataset.opening,motion=animate&&!reduced()&&typeof stage.animate==='function',previous=motion?[...stage.querySelectorAll('.choice-slide')].map(slide=>({id:slide.dataset.card,offset:Number(slide.dataset.offset),current:slide.classList.contains('is-current'),rect:slide.getBoundingClientRect(),opacity:getComputedStyle(slide).opacity})):[];let index=cards.findIndex(card=>card.id===session.currentCard);
-  if(index<0){index=0;session.currentCard=cards[0]?.id||null}const card=cards[index],offsets=cards.length>1?[-2,-1,0,1,2]:cards.length?[0]:[];
-  stage.style.removeProperty('--choice-drag');
-  stage.innerHTML=offsets.map(offset=>{const item=cards[(index+offset+cards.length*2)%cards.length],position=offset===-2?'before':offset===-1?'previous':offset===1?'next':offset===2?'after':'current',src=globalThis.CHOICE_BALLOON_ASSETS?.[item.id]||'assets/choice-balloons-v32/'+item.id+'.png';return `<button type="button" class="choice-slide is-${position}" data-card="${item.id}" data-offset="${offset}" ${Math.abs(offset)>1?'aria-hidden="true" inert tabindex="-1"':''} style="--ink:${item.ink}" aria-label="${offset?'切换到':'打开'}${item.name}心意卡" aria-current="${!offset}" ${opening?'disabled':''}><img src="${escapeHTML(src)}" alt="${item.name}" draggable="false"><svg class="choice-thread" viewBox="0 0 32 48" aria-hidden="true"><path d="M16 1C28 14 6 18 13 29S22 39 9 47"/></svg></button>`}).join('');
-  if(motion){const options={duration:420,easing:'cubic-bezier(.2,.7,.25,1)'},width=stage.getBoundingClientRect().width;for(const slide of [...stage.querySelectorAll('.choice-slide')].sort((a,b)=>Number(b.classList.contains('is-current'))-Number(a.classList.contains('is-current')))){
-   const rect=slide.getBoundingClientRect(),style=getComputedStyle(slide),candidates=previous.filter(item=>item.id===slide.dataset.card&&!item.used),old=candidates.find(item=>item.offset===Number(slide.dataset.offset)+direction)||candidates.sort((a,b)=>Math.abs(a.rect.left-rect.left)-Math.abs(b.rect.left-rect.left))[0],wrapped=old&&Math.abs(Number(slide.dataset.offset))>1&&Math.abs(old.rect.left-rect.left)>width;
-   if(old)old.used=true;if(!old||wrapped||!rect.width){slide.animate([{opacity:0},{opacity:style.opacity}],options);continue}
-   const base=style.transform==='none'?'':style.transform;slide.animate([{transform:`translate(${old.rect.left-rect.left}px,${old.rect.top-rect.top}px) ${base} scale(${old.rect.width/rect.width})`,transformOrigin:'0 0',opacity:old.opacity},{transform:base||'none',transformOrigin:'0 0',opacity:style.opacity}],options);
-  }}
-  $('#choice-vote-count').textContent=session.votes.length;$('#choice-description').textContent=card?.description||'先为喜欢的好创意投票，收获一份心意。';$('#choose-vote-summary').textContent='本次投票获得 '+cards.length+' 份心意';
-  $('#make-cards').disabled=opening||!card;$('#make-cards').innerHTML=opening?'心意来信，正在展开…':card?'带走「'+card.name+'」心意卡 <span aria-hidden="true">→</span>':'先去投票，收获心意';
-  $('#choice-previous').disabled=opening||cards.length<2;$('#choice-next').disabled=opening||cards.length<2;stage.setAttribute('aria-label','本次投票获得'+cards.length+'份心意，左右滑动选择');positionMailScene();
+ function updateChoiceCarousel({animate=false,direction=0,slot=null,snap=false}={}){
+  const cards=availableCards(),signature=cards.map(card=>card.id).join('|');let index=cards.findIndex(card=>card.id===session.currentCard);
+  if(index<0){index=0;session.currentCard=cards[0]?.id||null}
+  const rebuild=signature!==choiceSignature;choiceCards=cards;choiceSignature=signature;
+  if(rebuild){cancelChoiceMotion();choiceStage.classList.add('choice-wheel');const copies=cards.length>1?3:1;
+   choiceStage.innerHTML=Array.from({length:cards.length*copies},(_,slot)=>{const item=cards[slot%cards.length],src=globalThis.CHOICE_BALLOON_ASSETS?.[item.id]||'assets/choice-balloons-v32/'+item.id+'.png';return `<button type="button" class="choice-slide" data-card="${item.id}" data-slot="${slot}" style="--ink:${item.ink}"><img src="${escapeHTML(src)}" alt="${item.name}" draggable="false"><svg class="choice-thread" viewBox="0 0 32 48" aria-hidden="true"><path d="M16 1C28 14 6 18 13 29S22 39 9 47"/></svg></button>`}).join('');choiceNodes=[...choiceStage.querySelectorAll('.choice-slide')];choiceVisualCenter=null;
+  }
+  const width=choiceStage.clientWidth,u=Math.min(width/402,$('#mail-flow').clientHeight/815);choiceGeometry={center:width/2,step:width/2+15*u,width:228*u,rise:41*u};
+  if(rebuild||snap){cancelChoiceMotion();choicePosition=choiceTarget=(cards.length>1?cards.length:0)+index;choiceVisualCenter=null}
+  if(animate&&cards.length){let target;if(slot!==null)target=Math.round(choicePosition+wheelOffset(slot,choicePosition,choiceNodes.length));else{const base=Math.round(choiceTarget),baseIndex=((base%cards.length)+cards.length)%cards.length;let delta=index-baseIndex;if(direction>0)delta=(delta+cards.length)%cards.length;else if(direction<0)delta=-((-delta+cards.length)%cards.length);else if(Math.abs(delta)>cards.length/2)delta-=Math.sign(delta)*cards.length;target=base+delta}animateChoiceWheel(target)}
+  else{paintChoiceWheel();refreshChoiceUI()}
+  positionMailScene();
  }
  function renderChoices(){
   const stage=$('#heart-choices');stage.classList.remove('letter-in-flight');delete stage.dataset.opening;
   const flow=$('#mail-flow');if(!flow.querySelector(':scope > .mailbox'))flow.insertAdjacentHTML('beforeend',`<div class="mailbox" aria-hidden="true"><span class="mailbox-back"></span><span class="mailbox-lid"></span><span class="mailbox-front"><i class="mailbox-mark"><img src="${globalThis.ANNIVERSARY_MARK||'assets/anniversary-mark-v22.png'}" alt=""></i></span></div>`);
-  updateChoiceCarousel();void stage.offsetWidth;$('#choose-view').classList.add('choice-enter');availableCards().forEach(card=>preloadLetter(card.id).catch(()=>{}));
+  updateChoiceCarousel({snap:true});void stage.offsetWidth;$('#choose-view').classList.add('choice-enter');availableCards().forEach(card=>preloadLetter(card.id).catch(()=>{}));
  }
- function chooseCard(id,{focus=false,direction=0}={}){
+ function chooseCard(id,{focus=false,direction=0,slot=null}={}){
   if(view!=='choose'||pendingChoice||$('#heart-choices').dataset.opening||!availableCards().some(card=>card.id===id))return;
-  session.currentCard=id;save();updateChoiceCarousel({animate:true,direction});if(focus)$('#heart-choices .is-current')?.focus({preventScroll:true});
+  session.currentCard=id;save();updateChoiceCarousel({animate:true,direction,slot});if(focus)$('#heart-choices .is-current')?.focus({preventScroll:true});
  }
  function moveChoice(direction){const cards=availableCards();if(view!=='choose'||cards.length<2)return;const index=cards.findIndex(card=>card.id===session.currentCard);chooseCard(cards[(index+direction+cards.length)%cards.length].id,{direction})}
  $('#heart-choices').addEventListener('click',event=>{
   const button=event.target.closest('.choice-slide');if(!button||button.disabled)return;
-  if(button.classList.contains('is-current'))window.openHeartLetter(button.dataset.card);else chooseCard(button.dataset.card,{focus:true,direction:button.classList.contains('is-previous')?-1:1});
+  if(button.classList.contains('is-current'))window.openHeartLetter(button.dataset.card);else chooseCard(button.dataset.card,{focus:true,direction:button.classList.contains('is-previous')?-1:1,slot:Number(button.dataset.slot)});
  });
  $('#choice-previous').addEventListener('click',()=>moveChoice(-1));$('#choice-next').addEventListener('click',()=>moveChoice(1));
  $('#make-cards').addEventListener('click',()=>window.openHeartLetter(session.currentCard));
  $('#choose-view').addEventListener('animationend',event=>{if(event.target===$('#choose-voting'))$('#choose-view').classList.remove('choice-enter')});
  $('#choose-view').addEventListener('pointerdown',()=>$('#choose-view').classList.remove('choice-enter'));
- window.addEventListener('resize',()=>{if(view==='choose')updateChoiceCarousel();else if(view==='card')positionMailScene()});
+ window.addEventListener('resize',()=>{if(view==='choose')updateChoiceCarousel();else if(view==='card')positionMailScene();else if(view==='vote')syncAdNeighbors()});
  $('#choose-voting').addEventListener('click',()=>show('vote'));
  function renderCards({reveal=true}={}){
   if(!reveal){clearTimeout(motionTimer);pendingChoice=null;$('#mail-flow').classList.remove('letter-is-switching');$('#card-view').classList.remove('card-return')}
