@@ -80,3 +80,7 @@ dialog{max-height:calc(var(--app-height) - 32px - env(safe-area-inset-top,0px) -
 
 /* A small, detached ground shadow, shared by the voting and voted hearts. */
 #vote-view .heart-vote::after,#vote-view .voted-heart::after{content:'';position:absolute;left:27%;bottom:-9px;width:46%;height:7px;border-radius:50%;background:var(--vote-soft);opacity:.6;filter:blur(.7px);pointer-events:none}
+
+/* Voting changes the label, not the heart's size or position. */
+#vote-view .voted-heart{width:calc(132 * var(--ad-u));height:calc(128 * var(--ad-u))}
+#vote-view .already-voted{align-items:center;justify-content:flex-start}
