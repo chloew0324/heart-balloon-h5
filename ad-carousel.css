@@ -91,7 +91,7 @@
 #vote-view .native-ad-module .ad-caption{margin-left:var(--module-media-left);margin-right:calc(14 * var(--ad-u));font-size:calc(11 * var(--ad-u));line-height:1.5;color:#65737c}
 #vote-view .vote-scene,#vote-view .ad-carousel-slide{background:none}
 #vote-view .ad-stage{background:none;border-radius:0}
-#vote-view .ad-stage::before{content:'';position:absolute;left:0;top:0;width:100%;height:calc(440 * var(--ad-u));background:#fff;border-radius:calc(22 * var(--ad-u));z-index:-1;pointer-events:none;mask-image:linear-gradient(#000 0%,#000 66%,transparent 100%);-webkit-mask-image:linear-gradient(#000 0%,#000 66%,transparent 100%)}
+#vote-view .ad-card-surface::before{content:'';position:absolute;left:0;top:0;width:100%;height:calc(440 * var(--ad-u));background:#fff;border-radius:calc(22 * var(--ad-u));z-index:-1;pointer-events:none;mask-image:linear-gradient(#000 0%,#000 66%,transparent 100%);-webkit-mask-image:linear-gradient(#000 0%,#000 66%,transparent 100%)}
 /* Full-screen feedback tint, with the advertisement and balloon staying above it. */
 #vote-view{position:relative;isolation:isolate}
 #vote-view::before{content:'';position:absolute;inset:0;background:var(--vote-page-wash,#e0ffed);opacity:0;transition:opacity .25s ease;z-index:-1;pointer-events:none}

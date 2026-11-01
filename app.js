@@ -208,7 +208,7 @@ if(typeof document!=='undefined'){
  function currentAd(){return ads[session.index]}
  function currentVote(){return session.votes.find(vote=>vote.id===currentAd().id)}
  function closeAllDialogs(){$$('dialog[open]').forEach(dialog=>dialog.close());document.body.style.overflow=''}
- function stopMotion({keepLetters=false}={}){cancelChoiceMotion();cancelAdCarousel();clearTimeout(entryTimer);clearTimeout(motionTimer);pendingFlightId=null;pendingChoice=null;$('#mail-flow').classList.remove('letter-is-switching');$('#card-view').classList.remove('card-return');$('#vote-flight').hidden=true;$('#vote-flight').classList.remove('active');$('#vote-scene').classList.remove('vote-is-flying');$('#ad-carousel').classList.remove('vote-feedback-active');if(!keepLetters){$('#mail-flow')?.classList.remove('letter-is-unsealing');const letters=$('#heart-choices');letters.classList.remove('letter-in-flight');delete letters.dataset.opening;$$('.heart-choice.opening,.heart-choice.letter-sending').forEach(el=>el.classList.remove('opening','letter-sending'));if(view==='choose')updateChoiceCarousel();if(view==='card'&&availableCards().length){$('#card-view').classList.remove('card-reveal');updateCardPosition()}}$('#vote-button').disabled=false}
+ function stopMotion({keepLetters=false}={}){cancelChoiceMotion();cancelAdCarousel();clearTimeout(entryTimer);clearTimeout(motionTimer);pendingFlightId=null;pendingChoice=null;$('#mail-flow').classList.remove('letter-is-switching');$('#card-view').classList.remove('card-return');$('#vote-flight').hidden=true;$('#vote-flight').classList.remove('active');$('#vote-scene').classList.remove('vote-is-flying','vote-is-returning');$('#ad-carousel').classList.remove('vote-feedback-active','vote-feedback-returning');if(!keepLetters){$('#mail-flow')?.classList.remove('letter-is-unsealing');const letters=$('#heart-choices');letters.classList.remove('letter-in-flight');delete letters.dataset.opening;$$('.heart-choice.opening,.heart-choice.letter-sending').forEach(el=>el.classList.remove('opening','letter-sending'));if(view==='choose')updateChoiceCarousel();if(view==='card'&&availableCards().length){$('#card-view').classList.remove('card-reveal');updateCardPosition()}}$('#vote-button').disabled=false}
  function show(next,{replace=false}={}){
   if(next!=='landing'&&!manifestReady)return;
   if(next==='card'&&!availableCards().length)next='choose';
@@ -219,7 +219,11 @@ if(typeof document!=='undefined'){
   if(!['choose','card'].includes(next)||!['choose','card'].includes(previousView))window.scrollTo({top:0,behavior:'instant'});const title=$('#'+next+'-view h1');if(title){title.tabIndex=-1;title.focus({preventScroll:true})}
   $('#back-button').textContent=next==='landing'?'×':'‹';$('#back-button').setAttribute('aria-label',next==='landing'?'返回封面顶部':'返回上一页');
  }
- function completeFlight(adId){if(!adId||pendingFlightId!==adId)return;stopMotion();if(view==='vote')renderAd()}
+ function completeFlight(adId){
+  if(!adId||pendingFlightId!==adId||$('#ad-carousel').classList.contains('vote-feedback-returning'))return;
+  clearTimeout(motionTimer);flight.hidden=true;flight.classList.remove('active');$('#vote-scene').classList.replace('vote-is-flying','vote-is-returning');$('#ad-carousel').classList.replace('vote-feedback-active','vote-feedback-returning');updateAdVoteState();
+  motionTimer=setTimeout(()=>{if(pendingFlightId!==adId||view!=='vote')return;pendingFlightId=null;$('#vote-scene').classList.remove('vote-is-returning');$('#ad-carousel').classList.remove('vote-feedback-returning');updateAdVoteState()},reduced()?0:800);
+ }
  function openDialog(id){if(pendingFlightId)completeFlight(pendingFlightId);else stopMotion();closeAllDialogs();$(id).showModal();document.body.style.overflow='hidden'}
  $$('dialog').forEach(dialog=>{dialog.querySelector('.close-dialog').addEventListener('click',()=>dialog.close());dialog.addEventListener('close',()=>document.body.style.overflow='');dialog.addEventListener('click',event=>{const r=dialog.getBoundingClientRect();if(event.target===dialog&&(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom))dialog.close()})});
  function restart(){session=normalizeSession(null,ads.map(ad=>ad.id));session.round=Date.now();downloading=false;history=[];save();show('landing',{replace:true});$('#showcase').classList.remove('revealed')}
@@ -261,12 +265,15 @@ if(typeof document!=='undefined'){
 
  function sourceSummary(ad){const match=ad.sourceLabel.match(/(20\d{2}).*?([\d.]+)秒/);return match?match[1]+' 案例录屏 · '+match[2]+'秒':ad.sourceLabel}
  function renderAd(){
-  const ad=currentAd(),vote=currentVote();paintAdModule($('#vote-scene .moment-ad'),ad,true);const wrap=$('#vote-scene .ad-image-wrap');$('#ad-index').textContent=String(session.index+1).padStart(2,'0');$('#ad-title').textContent=ad.title;$('#ad-votes').innerHTML=ad.votes===null?'喜欢，由你来决定':`<span>╲ 参考票数 <b>${ad.votes.toLocaleString('zh-CN')}</b> ╱</span><small class="votes-snapshot">${escapeHTML(ad.votesLabel||'录屏票数快照')}</small>`;
+  const ad=currentAd();paintAdModule($('#vote-scene .moment-ad'),ad,true);const wrap=$('#vote-scene .ad-image-wrap');$('#ad-index').textContent=String(session.index+1).padStart(2,'0');$('#ad-title').textContent=ad.title;$('#ad-votes').innerHTML=ad.votes===null?'喜欢，由你来决定':`<span>╲ 参考票数 <b>${ad.votes.toLocaleString('zh-CN')}</b> ╱</span><small class="votes-snapshot">${escapeHTML(ad.votesLabel||'录屏票数快照')}</small>`;
 
   $('#vote-scene .moment-ad').classList.toggle('captured-ad',!!ad.capture);wrap.classList.toggle('capture-media',!!ad.capture);wrap.style.cssText=captureStyle(moduleCapture(ad));$('#ad-image').hidden=!ad.image;$('#ad-image-placeholder').hidden=!!ad.image;
   if(ad.image){const adId=ad.id;$('#ad-image').onerror=()=>{if(currentAd().id===adId){$('#ad-image').hidden=true;$('#ad-image-placeholder').hidden=false}};$('#ad-image').onload=()=>{if(currentAd().id===adId)$('#ad-image-placeholder').hidden=true};$('#ad-image').src=ad.image;$('#ad-image').alt=ad.title}
-  $('#ad-caption').textContent=adModules[ad.id]?.caption||ad.caption;$('#vote-scene .ad-card-bottom>span').textContent=sourceSummary(ad)||'广告';$('#ad-source').hidden=!ad.sourceUrl;prepareFlight();$('#vote-button').hidden=!!vote;$('#vote-button').disabled=!!pendingFlightId;$('#already-voted').hidden=!vote;$('#vote-brand-label').textContent=ad.brand.split(/\s/).slice(-1)[0]||'';
-  $('.vote-progress').innerHTML='已投 <b class="vote-count">'+session.votes.length+'</b> / 10 票';$('#next-step').textContent=session.votes.length?'下一步':'快去投票';$('#next-step').disabled=!session.votes.length||!!pendingFlightId;$('#previous-ad').disabled=ads.length<2||!!pendingFlightId;$('#next-ad').disabled=ads.length<2||!!pendingFlightId;refreshVoteCounts();if(!adCarouselBusy)syncAdNeighbors();
+  $('#ad-caption').textContent=adModules[ad.id]?.caption||ad.caption;$('#vote-scene .ad-card-bottom>span').textContent=sourceSummary(ad)||'广告';$('#ad-source').hidden=!ad.sourceUrl;prepareFlight();$('#vote-brand-label').textContent=ad.brand.split(/\s/).slice(-1)[0]||'';updateAdVoteState();
+ }
+ function updateAdVoteState(){
+  const vote=currentVote();$('#vote-button').hidden=!!vote;$('#vote-button').disabled=adCarouselBusy||!!pendingFlightId;$('#already-voted').hidden=!vote;
+  $('.vote-progress').innerHTML='已投 <b class="vote-count">'+session.votes.length+'</b> / 10 票';$('#next-step').textContent=session.votes.length?'下一步':'快去投票';$('#next-step').disabled=adCarouselBusy||!session.votes.length||!!pendingFlightId;$('#previous-ad').disabled=ads.length<2||!!pendingFlightId;$('#next-ad').disabled=ads.length<2||!!pendingFlightId;refreshVoteCounts();if(!adCarouselBusy)syncAdNeighbors();
  }
  function carouselStep(){return $('#ad-carousel').getBoundingClientRect().width+$('#vote-view').clientWidth/402*24}
  function cloneAdScene(index){
@@ -384,7 +391,7 @@ if(typeof document!=='undefined'){
  choiceStage.addEventListener('pointerup',event=>releaseChoiceDrag(event));choiceStage.addEventListener('pointercancel',event=>releaseChoiceDrag(event,true));
  $('#heart-choices').addEventListener('dragstart',event=>event.preventDefault());
  window.addEventListener('keydown',event=>{if($('dialog[open]')||pendingFlightId||pendingChoice)return;if(event.key==='ArrowRight'||event.key==='ArrowLeft'){const direction=event.key==='ArrowRight'?1:-1;if(view==='vote'){event.preventDefault();moveAd(direction)}else if(view==='choose'){event.preventDefault();$('#choose-view').classList.remove('choice-enter');moveChoice(direction)}else if(view==='card'){event.preventDefault();moveCard(direction)}}});
- $('#vote-button').addEventListener('click',()=>{if(!manifestReady||view!=='vote'||adCarouselBusy||currentVote()||pendingFlightId||session.votes.length>=MAX_VOTES)return;const adId=currentAd().id;session.votes.push({id:adId});save();if(!session.votes.some(vote=>vote.id===adId)){renderAd();return}if(reduced()){renderAd();return}launchFlight()});
+ $('#vote-button').addEventListener('click',()=>{if(!manifestReady||view!=='vote'||adCarouselBusy||currentVote()||pendingFlightId||session.votes.length>=MAX_VOTES)return;const adId=currentAd().id;session.votes.push({id:adId});save();if(!session.votes.some(vote=>vote.id===adId)){renderAd();return}if(reduced()){updateAdVoteState();return}launchFlight()});
  function availableCards(){const earned=earnedCardIds(session,ads.map(ad=>ad.id));return CARDS.filter(card=>earned.includes(card.id))}
  function votedBrandNames(){return [...new Set(session.votes.map(vote=>ads.find(ad=>ad.id===vote.id)?.brand).filter(Boolean).map(name=>name.match(/[\u3400-\u9fff][\u3400-\u9fff·-]*/g)?.join('')||name))]}
  function positionMailScene(){

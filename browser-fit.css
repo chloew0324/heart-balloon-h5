@@ -90,3 +90,11 @@ dialog{max-height:calc(var(--app-height) - 32px - env(safe-area-inset-top,0px) -
 #vote-view:has(#already-voted:not([hidden]))::before{opacity:.2}
 .phone-app:has(#vote-view:not([hidden]) #already-voted:not([hidden])),.phone-app:has(#vote-view:not([hidden]) #already-voted:not([hidden])) .wechat-bar{background-color:color-mix(in srgb,var(--vote-page-wash) 20%,#fafbfa)}
 #vote-view:has(.vote-feedback-active)::before{opacity:1}
+
+/* Only the advertising surface moves forward: clouds remain viewport-fixed. */
+#vote-view .ad-card-surface{position:relative;width:100%;height:100%;isolation:isolate;transform:none;transform-origin:50% 0;transition:transform .8s cubic-bezier(.22,.61,.36,1)}
+#vote-view .vote-is-flying .ad-card-surface{transform:translateY(calc(-12 * var(--ad-u))) scale(1.025);transition-duration:.55s}
+#vote-view .ad-carousel-slide{transition:opacity .65s ease}
+#vote-view .vote-feedback-active>.ad-carousel-slide{transition-duration:.25s;transition-delay:0s}
+#vote-view .vote-feedback-returning>.ad-carousel-slide{transition-delay:.12s}
+@media(prefers-reduced-motion:reduce){#vote-view .ad-card-surface,#vote-view .ad-carousel-slide{transition:none!important}#vote-view .vote-is-flying .ad-card-surface{transform:none}}
