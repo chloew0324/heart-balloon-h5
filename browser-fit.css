@@ -67,4 +67,6 @@ dialog{max-height:calc(var(--app-height) - 32px - env(safe-area-inset-top,0px) -
 #heart-choices.choice-wheel .choice-slide{left:0;top:0;width:calc(228 * var(--u));height:calc(228 * var(--u));translate:none;transform-origin:50% 0;will-change:transform,opacity;transition:none}
 
 /* Ads keep one fixed orbit radius and persistent neighbors throughout a swipe. */
-#vote-view .vote-scene,#vote-view .ad-carousel-slide{transition:opacity .18s ease;will-change:transform}
+#vote-view .vote-scene,#vote-view .ad-carousel-slide{transition:opacity .18s ease}
+#vote-view .ad-carousel-slide{will-change:transform}
+/* Resting live card must not contain the viewport-fixed cloud layer. */

@@ -290,7 +290,7 @@ if(typeof document!=='undefined'){
  function paintAdWheel(){
   if(!adGeometry||!adPreviews.length)return;const size=adPreviews.length,live=((adLiveSlot%size)+size)%size,origin=`50% ${adGeometry.radius}px`;
   for(let slot=0;slot<size;slot++){const slide=adPreviews[slot],relative=wheelOffset(slot,adPosition,size);slide.style.transformOrigin=origin;slide.style.transform=`rotateZ(${relative*5.85}deg)`;slide.style.visibility=Math.abs(relative)<2.25&&(adHandingOff||slot!==live)?'visible':'hidden';slide.style.zIndex=String(Math.round(30-Math.abs(relative)*5))}
-  const scene=$('#vote-scene'),relative=wheelOffset(adLiveSlot,adPosition,size);scene.style.transformOrigin=origin;scene.style.transform=`rotateZ(${relative*5.85}deg)`;scene.style.visibility=adHandingOff||Math.abs(relative)>2.25?'hidden':'visible';scene.style.zIndex=String(Math.round(30-Math.abs(relative)*5));
+  const scene=$('#vote-scene'),relative=wheelOffset(adLiveSlot,adPosition,size);scene.style.transformOrigin=origin;scene.style.transform=relative===0?'none':`rotateZ(${relative*5.85}deg)`;scene.style.willChange=relative===0&&!adMotion&&!adPointer?.dragging?'auto':'transform';scene.style.visibility=adHandingOff||Math.abs(relative)>2.25?'hidden':'visible';scene.style.zIndex=String(Math.round(30-Math.abs(relative)*5));
   $('.vote-heading').style.opacity=String(1-Math.min(.7,Math.abs(adPosition-Math.round(adPosition))*.9));
  }
  function cancelAdCarousel(){
