@@ -73,8 +73,8 @@ dialog{max-height:calc(var(--app-height) - 32px - env(safe-area-inset-top,0px) -
 
 /* Let the full-screen colour settle back after the heart, without a hard cut.
    Entry stays quick; the exit covers the page, safe area and custom title bar. */
-.phone-app,.wechat-bar{transition:background-color .95s cubic-bezier(.25,.1,.25,1)}
-#vote-view::before{transition:opacity .95s cubic-bezier(.25,.1,.25,1),background-color .35s ease}
+.phone-app,.wechat-bar{transition:background-color 1.8s cubic-bezier(.45,0,.55,1)}
+#vote-view::before{transition:opacity 1.8s cubic-bezier(.45,0,.55,1),background-color .6s ease}
 .phone-app:has(.vote-feedback-active),.phone-app:has(.vote-feedback-active) .wechat-bar,#vote-view:has(.vote-feedback-active)::before{transition-duration:.25s}
 @media(prefers-reduced-motion:reduce){.phone-app,.wechat-bar,#vote-view::before{transition:none!important}}
 
@@ -84,3 +84,9 @@ dialog{max-height:calc(var(--app-height) - 32px - env(safe-area-inset-top,0px) -
 /* Voting changes the label, not the heart's size or position. */
 #vote-view .voted-heart{width:calc(132 * var(--ad-u));height:calc(128 * var(--ad-u))}
 #vote-view .already-voted{align-items:center;justify-content:flex-start}
+
+/* Keep a trace of the chosen colour after voting, so the wash has somewhere
+   coloured to settle instead of dropping into a nearly white final frame. */
+#vote-view:has(#already-voted:not([hidden]))::before{opacity:.2}
+.phone-app:has(#vote-view:not([hidden]) #already-voted:not([hidden])),.phone-app:has(#vote-view:not([hidden]) #already-voted:not([hidden])) .wechat-bar{background-color:color-mix(in srgb,var(--vote-page-wash) 20%,#fafbfa)}
+#vote-view:has(.vote-feedback-active)::before{opacity:1}
